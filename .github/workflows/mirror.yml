@@ -15,4 +15,4 @@ jobs:
 
       - name: Push to GitLab
         run: |
-          git push --mirror ${{ secrets.GITLAB_REPO_URL }}
+          git push --force ${{ secrets.GITLAB_REPO_URL }}
