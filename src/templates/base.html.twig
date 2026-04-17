@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="GameFinder — вебплатформа для пошуку та підбору партнерів у багатокористувацьких онлайн-іграх. CS2, Dota 2, Valorant та інші.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="{% block canonical %}{{ app.request.uri }}{% endblock %}">
+    <title>{% block title %}GameFinder{% endblock %} | GameFinder</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root, [data-theme="dark"] {
+            --gf-primary: #6c5ce7;
+            --gf-secondary: #00cec9;
+            --gf-dark: #0a0a1a;
+            --gf-darker: #060612;
+            --gf-card: #12122a;
+            --gf-border: #1e1e3a;
+            --gf-text: #e0e0ff;
+            --gf-muted: #9999bb;
+            --gf-success: #00b894;
+            --gf-danger: #ff6b6b;
+            --gf-warning: #fdcb6e;
+            --gf-input-bg: #0d0d25;
+            --gf-input-border: #2a2a4a;
+            --gf-navbar-bg: linear-gradient(135deg, #0a0a1a 0%, #0d0d2b 100%);
+            --gf-dropdown-bg: #12122a;
+            --gf-alert-bg: #1a1a2e;
+        }
+
+        [data-theme="light"] {
+            --gf-primary: #6c5ce7;
+            --gf-secondary: #0984e3;
+            --gf-dark: #f0f0f5;
+            --gf-darker: #e8e8f0;
+            --gf-card: #ffffff;
+            --gf-border: #d0d0e0;
+            --gf-text: #1a1a2e;
+            --gf-muted: #666688;
+            --gf-success: #00b894;
+            --gf-danger: #d63031;
+            --gf-warning: #e17055;
+            --gf-input-bg: #ffffff;
+            --gf-input-border: #c0c0d8;
+            --gf-navbar-bg: linear-gradient(135deg, #ffffff 0%, #f0f0ff 100%);
+            --gf-dropdown-bg: #ffffff;
+            --gf-alert-bg: #f8f8ff;
+        }
+
+        [data-theme="light"] .navbar-gf { box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
+        [data-theme="light"] .navbar-gf .navbar-brand { color: var(--gf-primary); }
+        [data-theme="light"] .navbar-gf .nav-link { color: #555577; }
+        [data-theme="light"] .navbar-gf .nav-link:hover,
+        [data-theme="light"] .navbar-gf .nav-link.active { color: var(--gf-primary); background: rgba(108,92,231,0.08); }
+        [data-theme="light"] .card-gf { box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        [data-theme="light"] .card-gf:hover { box-shadow: 0 4px 16px rgba(108,92,231,0.12); }
+        [data-theme="light"] .badge-gf { background: rgba(108,92,231,0.1); }
+        [data-theme="light"] .chat-bubble { background: #f0f0f8; border-color: #d0d0e0; }
+        [data-theme="light"] .chat-message.own .chat-bubble { background: rgba(108,92,231,0.1); border-color: rgba(108,92,231,0.3); }
+        [data-theme="light"] footer { background: #f0f0f5; }
+        [data-theme="light"] .glow-text { -webkit-text-fill-color: transparent; }
+        [data-theme="light"] .table { color: #1a1a2e; }
+        [data-theme="light"] .dropdown-item.text-light { color: #1a1a2e !important; }
+        [data-theme="light"] .btn-close-white { filter: none; }
+
+        * { box-sizing: border-box; }
+
+        body {
+            background: var(--gf-darker);
+            color: var(--gf-text);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+        }
+
+        .navbar-gf {
+            background: var(--gf-navbar-bg);
+            border-bottom: 1px solid var(--gf-border);
+            padding: 0.75rem 0;
+        }
+
+        .navbar-gf .navbar-brand {
+            color: var(--gf-secondary);
+            font-weight: 800;
+            font-size: 1.5rem;
+            letter-spacing: 1px;
+        }
+
+        .navbar-gf .navbar-brand i { color: var(--gf-primary); }
+
+        .navbar-gf .nav-link {
+            color: var(--gf-muted);
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .navbar-gf .nav-link:hover, .navbar-gf .nav-link.active {
+            color: #fff;
+            background: rgba(108, 92, 231, 0.15);
+        }
+
+        .btn-gf {
+            background: linear-gradient(135deg, var(--gf-primary), #a855f7);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 0.5rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-gf:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(108, 92, 231, 0.4);
+            color: #fff;
+        }
+
+        .btn-gf-outline {
+            background: transparent;
+            color: var(--gf-primary);
+            border: 2px solid var(--gf-primary);
+            border-radius: 10px;
+            padding: 0.5rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-gf-outline:hover {
+            background: var(--gf-primary);
+            color: #fff;
+        }
+
+        .btn-gf-success {
+            background: linear-gradient(135deg, var(--gf-success), #00d2d3);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 0.5rem 1.5rem;
+            font-weight: 600;
+        }
+
+        .btn-gf-danger {
+            background: linear-gradient(135deg, var(--gf-danger), #ee5a24);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 0.5rem 1.5rem;
+            font-weight: 600;
+        }
+
+        .card-gf {
+            background: var(--gf-card);
+            border: 1px solid var(--gf-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: all 0.3s;
+        }
+
+        .card-gf:hover {
+            border-color: var(--gf-primary);
+            box-shadow: 0 0 30px rgba(108, 92, 231, 0.1);
+        }
+
+        .badge-gf {
+            background: rgba(108, 92, 231, 0.2);
+            color: var(--gf-primary);
+            border-radius: 20px;
+            padding: 0.3rem 0.8rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .badge-gf-success {
+            background: rgba(0, 184, 148, 0.2);
+            color: var(--gf-success);
+        }
+
+        .badge-gf-danger {
+            background: rgba(255, 107, 107, 0.2);
+            color: var(--gf-danger);
+        }
+
+        .badge-gf-warning {
+            background: rgba(253, 203, 110, 0.2);
+            color: var(--gf-warning);
+        }
+
+        .avatar-sm {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--gf-primary);
+        }
+
+        .avatar-md {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--gf-primary);
+        }
+
+        .avatar-lg {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--gf-primary);
+        }
+
+        .avatar-placeholder {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--gf-primary), #a855f7);
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 1rem;
+        }
+
+        .stat-card .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--gf-secondary), var(--gf-primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-card .stat-label {
+            color: var(--gf-muted);
+            font-size: 0.85rem;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: var(--gf-danger);
+            color: #fff;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .form-control, .form-select {
+            background: var(--gf-input-bg);
+            border: 2px solid var(--gf-input-border);
+            color: var(--gf-text);
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+        }
+
+        .form-control::placeholder {
+            color: var(--gf-muted);
+        }
+
+        .form-control:focus, .form-select:focus {
+            background: var(--gf-input-bg);
+            border-color: var(--gf-primary);
+            color: var(--gf-text);
+            box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.3);
+        }
+
+        .form-label { color: var(--gf-muted); font-weight: 600; font-size: 0.95rem; }
+
+        input[type="datetime-local"],
+        input[type="date"],
+        input[type="time"] {
+            background: var(--gf-input-bg);
+            border: 2px solid var(--gf-primary);
+            color: var(--gf-text);
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+        }
+
+        [data-theme="dark"] input[type="datetime-local"],
+        [data-theme="dark"] input[type="date"],
+        [data-theme="dark"] input[type="time"] { color-scheme: dark; }
+
+        input[type="datetime-local"]:focus,
+        input[type="date"]:focus,
+        input[type="time"]:focus {
+            box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.4);
+            border-color: #a855f7;
+        }
+
+        .form-check-input {
+            background-color: var(--gf-input-bg);
+            border-color: var(--gf-input-border);
+        }
+
+        .form-check-input:checked {
+            background-color: var(--gf-primary);
+            border-color: var(--gf-primary);
+        }
+
+        .page-header {
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .page-header h1 {
+            font-weight: 800;
+            font-size: 2rem;
+        }
+
+        .glow-text {
+            background: linear-gradient(135deg, var(--gf-secondary), var(--gf-primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .chat-container {
+            height: calc(100vh - 250px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+
+        .chat-message {
+            margin-bottom: 1rem;
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .chat-message.own { flex-direction: row-reverse; }
+
+        .chat-bubble {
+            background: var(--gf-dark);
+            border: 1px solid var(--gf-border);
+            border-radius: 16px;
+            padding: 0.75rem 1rem;
+            max-width: 70%;
+        }
+
+        .chat-message.own .chat-bubble {
+            background: rgba(108, 92, 231, 0.2);
+            border-color: var(--gf-primary);
+        }
+
+        .chat-input {
+            padding: 1rem;
+            border-top: 1px solid var(--gf-border);
+            background: var(--gf-dark);
+            border-radius: 0 0 16px 16px;
+        }
+
+        .premium-badge {
+            background: linear-gradient(135deg, #f39c12, #e74c3c);
+            color: #fff;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .rating-positive { color: var(--gf-success); }
+        .rating-negative { color: var(--gf-danger); }
+
+        .flash-messages {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 1050;
+            max-width: 400px;
+        }
+
+        footer {
+            background: var(--gf-dark);
+            border-top: 1px solid var(--gf-border);
+            padding: 2rem 0;
+            margin-top: 3rem;
+            color: var(--gf-muted);
+        }
+
+        .table { color: var(--gf-text); }
+        .table thead th { border-color: var(--gf-border); color: var(--gf-muted); }
+        .table td { border-color: var(--gf-border); }
+    </style>
+    {% block stylesheets %}{% endblock %}
+    <script>document.documentElement.setAttribute('data-theme', localStorage.getItem('gf-theme') || 'dark');</script>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-gf sticky-top">
+    <div class="container">
+        <a class="navbar-brand" href="{{ path('app_dashboard') }}">
+            <i class="fas fa-gamepad me-2"></i>GameFinder
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Меню навігації">
+            <i class="fas fa-bars text-white"></i>
+        </button>
+
+        <div class="collapse navbar-collapse" id="mainNav">
+            {% if app.user %}
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_lobbies') }}"><i class="fas fa-door-open me-1"></i> Лобі</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_games') }}"><i class="fas fa-trophy me-1"></i> Ігри</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_events') }}"><i class="fas fa-calendar me-1"></i> Події</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_find_players') }}"><i class="fas fa-magic me-1"></i> Підбір</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_leaderboard') }}"><i class="fas fa-ranking-star me-1"></i> Рейтинг</a>
+                    </li>
+                </ul>
+
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_messages') }}" aria-label="Повідомлення"><i class="fas fa-envelope"></i></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_friends') }}" aria-label="Друзі"><i class="fas fa-user-group"></i></a>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link btn border-0" id="themeToggle" aria-label="Змінити тему" style="cursor:pointer;">
+                            <i class="fas fa-sun" id="themeIcon"></i>
+                        </button>
+                    </li>
+                    <li class="nav-item position-relative">
+                        <a class="nav-link" href="{{ path('app_notifications') }}" aria-label="Сповіщення">
+                            <i class="fas fa-bell"></i>
+                            <span id="notif-badge" class="notification-badge" style="display:none;"></span>
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" data-bs-toggle="dropdown">
+                            {{ user_avatar(app.user.avatar, app.user.username, 'sm') }}
+                            <span class="ms-2">{{ app.user.username }}</span>
+                            {% if app.user.premium %}
+                                <span class="premium-badge ms-1">PRO</span>
+                            {% endif %}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" style="background:var(--gf-dropdown-bg);border-color:var(--gf-border);">
+                            <li><a class="dropdown-item text-light" href="{{ path('app_profile') }}"><i class="fas fa-user me-2"></i>Профіль</a></li>
+                            <li><a class="dropdown-item text-light" href="{{ path('app_profile_edit') }}"><i class="fas fa-gear me-2"></i>Налаштування</a></li>
+                            {% if is_granted('ROLE_MODERATOR') %}
+                                <li><hr class="dropdown-divider" style="border-color:var(--gf-border)"></li>
+                                <li><a class="dropdown-item" style="color:var(--gf-secondary)" href="{{ path('app_moderator') }}"><i class="fas fa-gavel me-2"></i>Модерація</a></li>
+                            {% endif %}
+                            {% if is_granted('ROLE_ADMIN') %}
+                                <li><hr class="dropdown-divider" style="border-color:var(--gf-border)"></li>
+                                <li><a class="dropdown-item text-warning" href="{{ path('app_admin') }}"><i class="fas fa-shield me-2"></i>Адмінка</a></li>
+                            {% endif %}
+                            <li><hr class="dropdown-divider" style="border-color:var(--gf-border)"></li>
+                            <li><a class="dropdown-item text-danger" href="{{ path('app_logout') }}"><i class="fas fa-sign-out me-2"></i>Вийти</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            {% else %}
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <button class="nav-link btn border-0" id="themeToggleGuest" aria-label="Змінити тему" style="cursor:pointer;">
+                            <i class="fas fa-sun" id="themeIconGuest"></i>
+                        </button>
+                    </li>
+                    <li class="nav-item"><a class="nav-link" href="{{ path('app_login') }}">Вхід</a></li>
+                    <li class="nav-item"><a class="btn btn-gf ms-2" href="{{ path('app_register') }}">Реєстрація</a></li>
+                </ul>
+            {% endif %}
+        </div>
+    </div>
+</nav>
+
+<div class="flash-messages">
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label == 'success' ? 'success' : (label == 'error' ? 'danger' : 'info') }} alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Закрити"></button>
+            </div>
+        {% endfor %}
+    {% endfor %}
+</div>
+
+<main class="container py-4">
+    {% block body %}{% endblock %}
+</main>
+
+<footer>
+    <div class="container text-center">
+        <p class="mb-1"><i class="fas fa-gamepad me-1"></i> GameFinder &copy; {{ "now"|date("Y") }}</p>
+        <p class="small">Вебплатформа для пошуку партнерів у багатокористувацьких онлайн-іграх</p>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    (function() {
+        const saved = localStorage.getItem('gf-theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', saved);
+        document.querySelectorAll('#themeIcon, #themeIconGuest').forEach(icon => {
+            icon.className = saved === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+        });
+    })();
+
+    function toggleTheme() {
+        const current = document.documentElement.getAttribute('data-theme') || 'dark';
+        const next = current === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem('gf-theme', next);
+        document.querySelectorAll('#themeIcon, #themeIconGuest').forEach(icon => {
+            icon.className = next === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+        });
+    }
+
+    document.querySelectorAll('#themeToggle, #themeToggleGuest').forEach(btn => {
+        btn.addEventListener('click', toggleTheme);
+    });
+
+    setTimeout(() => {
+        document.querySelectorAll('.flash-messages .alert').forEach(el => {
+            el.style.transition = 'opacity 0.5s';
+            el.style.opacity = '0';
+            setTimeout(() => el.remove(), 500);
+        });
+    }, 4000);
+
+    {% if app.user %}
+    setInterval(async () => {
+        try {
+            const res = await fetch('{{ path("app_notifications_count") }}');
+            const data = await res.json();
+            const badge = document.getElementById('notif-badge');
+            if (data.count > 0) {
+                badge.textContent = data.count;
+                badge.style.display = 'flex';
+            } else {
+                badge.style.display = 'none';
+            }
+        } catch(e) {}
+    }, 30000);
+    {% endif %}
+</script>
+{% block javascripts %}{% endblock %}
+</body>
+</html>
