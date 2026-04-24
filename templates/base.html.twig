@@ -107,7 +107,6 @@
         }
     </style>
     {% block stylesheets %}{% endblock %}
-            {{ encore_entry_link_tags('app') }}
 </head>
 <body>
 <nav class="navbar navbar-expand-lg navbar-gf sticky-top">
@@ -123,6 +122,9 @@
         <div class="collapse navbar-collapse" id="mainNav">
             {% if app.user %}
                 <ul class="navbar-nav me-auto" id="gf-nav-links">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_games') }}"><i class="fas fa-trophy me-1"></i> Ігри</a>
+                    </li>
                 </ul>
 
                 <ul class="navbar-nav" id="gf-nav-actions">
@@ -157,7 +159,5 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 {% block javascripts %}{% endblock %}
-            {{ encore_entry_script_tags('app') }}
-            {% block importmap %}{{ importmap('app') }}{% endblock %}
 </body>
 </html>
