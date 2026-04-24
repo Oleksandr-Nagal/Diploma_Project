@@ -1,0 +1,50 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Сповіщення{% endblock %}
+
+{% block body %}
+    <div class="page-header d-flex justify-content-between align-items-center">
+        <h1><i class="fas fa-bell me-2" style="color:var(--gf-warning)"></i>Сповіщення</h1>
+        <form action="{{ path('app_notifications_read_all') }}" method="post">
+            <button class="btn btn-gf-outline btn-sm"><i class="fas fa-check-double me-1"></i> Прочитати всі</button>
+        </form>
+    </div>
+
+    {% if notifications is empty %}
+        <div class="card-gf text-center py-5">
+            <i class="fas fa-bell-slash fa-4x mb-3" style="color:var(--gf-muted)"></i>
+            <h4 style="color:var(--gf-muted)">Немає сповіщень</h4>
+        </div>
+    {% else %}
+        {% for notif in notifications %}
+            <div class="card-gf mb-2 {{ not notif.isRead ? 'border-start border-3' : '' }}" style="{{ not notif.isRead ? 'border-left-color:var(--gf-primary) !important;' : '' }}">
+                <div class="d-flex align-items-center gap-3">
+                    <div>
+                        {% if notif.type == 'lobby_invite' %}
+                            <i class="fas fa-door-open fa-lg" style="color:var(--gf-primary)"></i>
+                        {% elseif notif.type == 'friend_request' %}
+                            <i class="fas fa-user-plus fa-lg" style="color:var(--gf-secondary)"></i>
+                        {% elseif notif.type == 'game_start' %}
+                            <i class="fas fa-play fa-lg" style="color:var(--gf-success)"></i>
+                        {% elseif notif.type == 'review' %}
+                            <i class="fas fa-star fa-lg" style="color:var(--gf-warning)"></i>
+                        {% else %}
+                            <i class="fas fa-bell fa-lg" style="color:var(--gf-muted)"></i>
+                        {% endif %}
+                    </div>
+                    <div class="flex-fill">
+                        {% if notif.link %}
+                            <a href="{{ notif.link }}" class="text-decoration-none" style="color:var(--gf-text)">{{ notif.message }}</a>
+                        {% else %}
+                            {{ notif.message }}
+                        {% endif %}
+                        <br><small style="color:var(--gf-muted)">{{ notif.createdAt|date('d.m.Y H:i') }}</small>
+                    </div>
+                    {% if not notif.isRead %}
+                        <span class="badge-gf badge-gf-success">Нове</span>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endblock %}
