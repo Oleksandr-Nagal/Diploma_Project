@@ -1,0 +1,64 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Редагування профілю{% endblock %}
+
+{% block body %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="page-header">
+            <h1><i class="fas fa-user-edit me-2" style="color:var(--gf-primary)"></i>Редагування профілю</h1>
+        </div>
+
+        <div class="card-gf mb-4">
+            <h5 class="mb-3">Поточний аватар</h5>
+            <div class="text-center mb-3">
+                {{ user_avatar(app.user.avatar, app.user.username, 'lg') }}
+            </div>
+
+            <h5 class="mb-3"><i class="fas fa-upload me-2" style="color:var(--gf-secondary)"></i>Завантажити свій аватар</h5>
+            <form action="{{ path('app_profile_avatar', {id: app.user.id}) }}" method="post" enctype="multipart/form-data" class="mb-4">
+                <div class="d-flex gap-3 align-items-center">
+                    <input type="file" name="custom_avatar" class="form-control" accept="image/png,image/jpeg,image/gif,image/webp" aria-label="Вибрати зображення">
+                    <button type="submit" class="btn btn-gf flex-shrink-0">
+                        <i class="fas fa-cloud-upload-alt me-1"></i> Завантажити
+                    </button>
+                </div>
+                <small style="color:var(--gf-muted)">PNG, JPG, GIF або WebP. Максимум 5MB.</small>
+            </form>
+
+            <h5 class="mb-3"><i class="fas fa-palette me-2" style="color:var(--gf-primary)"></i>Або оберіть готовий аватар</h5>
+            <div class="d-flex gap-3 flex-wrap justify-content-center">
+                {% for key, data in avatar_list() %}
+                <form action="{{ path('app_profile_avatar', {id: app.user.id}) }}" method="post">
+                    <input type="hidden" name="avatar" value="{{ key }}">
+                    <button type="submit" class="btn p-1 border-0 rounded-circle" title="{{ data.label }}" aria-label="{{ data.label }}" style="{{ app.user.avatar == 'avatar:' ~ key ? 'box-shadow: 0 0 0 3px var(--gf-success);border-radius:50%;' : '' }}">
+                        <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,{{ data.color1 }},{{ data.color2 }});display:flex;align-items:center;justify-content:center;transition:transform 0.2s;cursor:pointer;" onmouseover="this.style.transform='scale(1.15)'" onmouseout="this.style.transform='scale(1)'">
+                            <i class="fas {{ data.icon }}" style="color:#fff;font-size:1.3rem;"></i>
+                        </div>
+                    </button>
+                </form>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="card-gf">
+            <h5 class="mb-3">Інформація профілю</h5>
+            {{ form_start(form) }}
+                {% for field in form %}
+                    {% if field.vars.name != '_token' %}
+                    <div class="mb-3">
+                        {{ form_label(field) }}
+                        {{ form_widget(field, {'attr': {'class': field.vars.block_prefixes[1] == 'textarea' ? 'form-control' : (field.vars.block_prefixes[1] == 'choice' ? 'form-select' : 'form-control')}}) }}
+                        {{ form_errors(field) }}
+                    </div>
+                    {% endif %}
+                {% endfor %}
+
+                <button type="submit" class="btn btn-gf">
+                    <i class="fas fa-save me-1"></i> Зберегти зміни
+                </button>
+            {{ form_end(form) }}
+        </div>
+    </div>
+</div>
+{% endblock %}
