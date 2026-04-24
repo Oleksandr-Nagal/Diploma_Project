@@ -1,0 +1,167 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block body %}
+    <div class="page-header">
+        <h1>
+            <span class="glow-text">GameFinder</span>
+        </h1>
+        <p style="color:var(--gf-muted)">Знайди ідеальних напарників для своєї гри</p>
+    </div>
+
+    {# Quick Actions #}
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <a href="{{ path('app_lobby_create') }}" class="card-gf d-block text-decoration-none h-100">
+                <div class="text-center">
+                    <i class="fas fa-plus-circle fa-2x mb-2" style="color:var(--gf-primary)"></i>
+                    <h6>Створити лобі</h6>
+                    <small style="color:var(--gf-muted)">Зібери команду</small>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a href="{{ path('app_lobbies') }}" class="card-gf d-block text-decoration-none h-100">
+                <div class="text-center">
+                    <i class="fas fa-search fa-2x mb-2" style="color:var(--gf-secondary)"></i>
+                    <h6>Знайти лобі</h6>
+                    <small style="color:var(--gf-muted)">Шукай партнерів</small>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a href="{{ path('app_find_players') }}" class="card-gf d-block text-decoration-none h-100">
+                <div class="text-center">
+                    <i class="fas fa-magic fa-2x mb-2" style="color:var(--gf-warning)"></i>
+                    <h6>Підбір партнерів</h6>
+                    <small style="color:var(--gf-muted)">AI рекомендації</small>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <a href="{{ path('app_events') }}" class="card-gf d-block text-decoration-none h-100">
+                <div class="text-center">
+                    <i class="fas fa-calendar fa-2x mb-2" style="color:var(--gf-secondary)"></i>
+                    <h6>Календар подій</h6>
+                    <small style="color:var(--gf-muted)">Заплануй гру</small>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a href="{{ path('app_leaderboard') }}" class="card-gf d-block text-decoration-none h-100">
+                <div class="text-center">
+                    <i class="fas fa-ranking-star fa-2x mb-2" style="color:var(--gf-danger)"></i>
+                    <h6>Рейтинг</h6>
+                    <small style="color:var(--gf-muted)">Топ гравців</small>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a href="{{ path('app_games') }}" class="card-gf d-block text-decoration-none h-100">
+                <div class="text-center">
+                    <i class="fas fa-trophy fa-2x mb-2" style="color:var(--gf-primary)"></i>
+                    <h6>Каталог ігор</h6>
+                    <small style="color:var(--gf-muted)">Всі ігри</small>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a href="{{ path('app_friends') }}" class="card-gf d-block text-decoration-none h-100">
+                <div class="text-center">
+                    <i class="fas fa-user-group fa-2x mb-2" style="color:var(--gf-success)"></i>
+                    <h6>Мої друзі</h6>
+                    <small style="color:var(--gf-muted)">Твоя команда</small>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        {# Open Lobbies #}
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4><i class="fas fa-door-open me-2" style="color:var(--gf-primary)"></i>Відкриті лобі</h4>
+                <a href="{{ path('app_lobbies') }}" class="btn btn-gf-outline btn-sm">Всі лобі</a>
+            </div>
+
+            {% if lobbies is empty %}
+                <div class="card-gf text-center py-4">
+                    <i class="fas fa-ghost fa-3x mb-3" style="color:var(--gf-muted)"></i>
+                    <p style="color:var(--gf-muted)">Поки немає відкритих лобі. Створіть перше!</p>
+                </div>
+            {% else %}
+                {% for lobby in lobbies|slice(0, 6) %}
+                    <div class="card-gf mb-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h5 class="mb-1">
+                                    <a href="{{ path('app_lobby_show', {id: lobby.id}) }}" class="text-decoration-none" style="color:var(--gf-text)">
+                                        {{ lobby.title }}
+                                    </a>
+                                </h5>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <span class="badge-gf"><i class="fas fa-gamepad me-1"></i>{{ lobby.game.name }}</span>
+                                    <span class="badge-gf badge-gf-success">
+                                <i class="fas fa-users me-1"></i>{{ lobby.currentMemberCount }}/{{ lobby.maxMembers }}
+                            </span>
+                                    {% if lobby.skillLevel != 'any' %}
+                                        <span class="badge-gf badge-gf-warning">{{ lobby.skillLevel }}</span>
+                                    {% endif %}
+                                    {% if lobby.language %}
+                                        <span class="badge-gf"><i class="fas fa-globe me-1"></i>{{ lobby.language }}</span>
+                                    {% endif %}
+                                    {% if lobby.voiceChat %}
+                                        <span class="badge-gf" style="color:var(--gf-secondary)"><i class="fas fa-microphone me-1"></i>Voice</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <small style="color:var(--gf-muted)">{{ lobby.createdAt|date('H:i') }}</small>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        {# Sidebar: Games & Events #}
+        <div class="col-lg-4">
+            <h4 class="mb-3"><i class="fas fa-trophy me-2" style="color:var(--gf-secondary)"></i>Ігри</h4>
+            {% for game in games|slice(0, 5) %}
+                <a href="{{ path('app_game_show', {id: game.id}) }}" class="card-gf d-flex align-items-center gap-3 mb-2 text-decoration-none">
+                    {% if game.imageUrl %}
+                        <img src="{{ game.imageUrl }}" style="width:48px;height:48px;border-radius:10px;object-fit:cover;" alt="">
+                    {% else %}
+                        <div style="width:48px;height:48px;border-radius:10px;background:var(--gf-primary);display:flex;align-items:center;justify-content:center;">
+                            <i class="fas fa-gamepad text-white"></i>
+                        </div>
+                    {% endif %}
+                    <div>
+                        <strong style="color:var(--gf-text)">{{ game.name }}</strong><br>
+                        <small style="color:var(--gf-muted)">{{ game.genre }}</small>
+                    </div>
+                </a>
+            {% endfor %}
+
+            <h4 class="mt-4 mb-3"><i class="fas fa-calendar me-2" style="color:var(--gf-warning)"></i>Найближчі події</h4>
+            {% for event in events %}
+                <div class="card-gf mb-2">
+                    <a href="{{ path('app_event_show', {id: event.id}) }}" class="text-decoration-none" style="color:var(--gf-text)">
+                        <strong>{{ event.title }}</strong>
+                    </a>
+                    <div class="mt-1">
+                        <small style="color:var(--gf-muted)">
+                            <i class="fas fa-clock me-1"></i>{{ event.startAt|date('d.m.Y H:i') }}
+                            &middot; {{ event.game.name }}
+                            &middot; {{ event.participants|length }}/{{ event.maxParticipants }}
+                        </small>
+                    </div>
+                </div>
+            {% else %}
+                <p style="color:var(--gf-muted)" class="small">Немає запланованих подій</p>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
