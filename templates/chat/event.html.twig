@@ -1,0 +1,143 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Чат - {{ event.title }}{% endblock %}
+
+{% block body %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4><i class="fas fa-comments me-2" style="color:var(--gf-primary)"></i>{{ event.title }}</h4>
+    <a href="{{ path('app_event_show', {id: event.id}) }}" class="btn btn-gf-outline btn-sm">
+        <i class="fas fa-arrow-left me-1"></i> До події
+    </a>
+</div>
+
+<div class="card-gf p-0">
+    <div class="chat-container">
+        <div class="chat-messages" id="chatMessages">
+            {% for msg in messages %}
+            <div class="chat-message {{ msg.sender.id == app.user.id ? 'own' : '' }}" data-id="{{ msg.id }}">
+                {% if msg.sender.id != app.user.id %}
+                <div>
+                    {{ user_avatar(msg.sender.avatar, msg.sender.username, 'sm') }}
+                </div>
+                {% endif %}
+                <div class="chat-bubble">
+                    {% if msg.sender.id != app.user.id %}
+                        <small style="color:var(--gf-primary);font-weight:600;">{{ msg.sender.username }}</small><br>
+                    {% endif %}
+                    {{ msg.content }}
+                    <div class="mt-1 d-flex align-items-center gap-2">
+                        <small style="color:var(--gf-muted);font-size:0.75rem;">{{ msg.createdAt|date('H:i') }}</small>
+                        {% if msg.sender.id != app.user.id %}
+                            <button class="btn btn-sm p-0 report-msg-btn" style="color:var(--gf-muted);font-size:0.65rem;background:none;border:none;opacity:0.5;" title="Поскаржитись" data-bs-toggle="modal" data-bs-target="#reportEvtModal{{ msg.id }}">
+                                <i class="fas fa-flag"></i>
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if msg.sender.id != app.user.id %}
+                <div class="modal fade" id="reportEvtModal{{ msg.id }}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-sm">
+                        <div class="modal-content" style="background:var(--gf-card);border:1px solid var(--gf-border);border-radius:16px;">
+                            <div class="modal-header" style="border-color:var(--gf-border);">
+                                <h6 class="modal-title" style="color:var(--gf-text)"><i class="fas fa-flag me-1" style="color:var(--gf-danger)"></i>Скарга</h6>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Закрити"></button>
+                            </div>
+                            <form action="{{ path('app_report_message', {id: msg.id}) }}" method="post">
+                                <div class="modal-body">
+                                    <textarea name="reason" class="form-control form-control-sm" rows="2" placeholder="Причина скарги..." required></textarea>
+                                </div>
+                                <div class="modal-footer" style="border-color:var(--gf-border);">
+                                    <button type="submit" class="btn btn-gf-danger btn-sm"><i class="fas fa-paper-plane me-1"></i>Надіслати</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="chat-input">
+            <form id="chatForm" class="d-flex gap-2">
+                <input type="text" name="message" id="chatInput" class="form-control" placeholder="Написати повідомлення..." autocomplete="off">
+                <button type="submit" class="btn btn-gf" aria-label="Надіслати"><i class="fas fa-paper-plane"></i></button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block stylesheets %}
+<style>
+    .chat-message:hover .report-msg-btn { opacity: 1 !important; }
+    .report-msg-btn:hover { color: var(--gf-danger) !important; }
+</style>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+const chatBox = document.getElementById('chatMessages');
+const chatForm = document.getElementById('chatForm');
+const chatInput = document.getElementById('chatInput');
+const currentUserId = {{ app.user.id }};
+const sendUrl = '{{ path("app_event_chat_send", {id: event.id}) }}';
+const pollUrl = '{{ path("app_event_chat_poll", {id: event.id}) }}';
+
+function scrollToBottom() { chatBox.scrollTop = chatBox.scrollHeight; }
+scrollToBottom();
+
+function getLastMessageId() {
+    const msgs = chatBox.querySelectorAll('.chat-message[data-id]');
+    if (msgs.length === 0) return 0;
+    return parseInt(msgs[msgs.length - 1].dataset.id) || 0;
+}
+
+function renderMessage(msg) {
+    const isOwn = msg.senderId === currentUserId;
+    if (chatBox.querySelector(`[data-id="${msg.id}"]`)) return;
+
+    const letter = msg.senderName.charAt(0).toUpperCase();
+    let avatarHtml = `<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#6c5ce7,#a855f7);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:0.9rem;border:2px solid #6c5ce7;flex-shrink:0;">${letter}</div>`;
+
+    const html = `
+        <div class="chat-message ${isOwn ? 'own' : ''}" data-id="${msg.id}">
+            ${!isOwn ? `<div>${avatarHtml}</div>` : ''}
+            <div class="chat-bubble">
+                ${!isOwn ? `<small style="color:var(--gf-primary);font-weight:600;">${msg.senderName}</small><br>` : ''}
+                ${msg.content}
+                <div class="mt-1"><small style="color:var(--gf-muted);font-size:0.75rem;">${msg.createdAt}</small></div>
+            </div>
+        </div>`;
+    chatBox.insertAdjacentHTML('beforeend', html);
+    scrollToBottom();
+}
+
+chatForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = chatInput.value.trim();
+    if (!msg) return;
+    const formData = new FormData();
+    formData.append('message', msg);
+    chatInput.value = '';
+    chatInput.focus();
+    try {
+        const res = await fetch(sendUrl, { method: 'POST', body: formData, headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+        const data = await res.json();
+        if (data.message) renderMessage(data.message);
+    } catch (err) {}
+});
+
+setInterval(async () => {
+    try {
+        const res = await fetch(`${pollUrl}?after=${getLastMessageId()}`);
+        const data = await res.json();
+        if (data.messages) data.messages.forEach(renderMessage);
+    } catch (err) {}
+}, 2000);
+
+chatInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); chatForm.dispatchEvent(new Event('submit')); }
+});
+</script>
+{% endblock %}

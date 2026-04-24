@@ -1,0 +1,236 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Чат - {{ lobby.title }}{% endblock %}
+
+{% block body %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4><i class="fas fa-comments me-2" style="color:var(--gf-primary)"></i>{{ lobby.title }}</h4>
+    <a href="{{ path('app_lobby_show', {id: lobby.id}) }}" class="btn btn-gf-outline btn-sm">
+        <i class="fas fa-arrow-left me-1"></i> До лобі
+    </a>
+</div>
+
+<div class="card-gf p-0">
+    <div class="chat-container">
+        <div class="chat-messages" id="chatMessages">
+            {% for msg in messages %}
+            <div class="chat-message {{ msg.sender.id == app.user.id ? 'own' : '' }}" data-id="{{ msg.id }}">
+                {% if msg.sender.id != app.user.id %}
+                <div>
+                    {{ user_avatar(msg.sender.avatar, msg.sender.username, 'sm') }}
+                </div>
+                {% endif %}
+                <div class="chat-bubble">
+                    {% if msg.sender.id != app.user.id %}
+                        <small style="color:var(--gf-primary);font-weight:600;">{{ msg.sender.username }}</small><br>
+                    {% endif %}
+                    {{ msg.content }}
+                    {% if msg.attachmentUrl %}
+                        <div class="mt-2">
+                            {% if msg.type == 'image' %}
+                                <img src="{{ msg.attachmentUrl }}" style="max-width:200px;border-radius:8px;" alt="Зображення">
+                            {% else %}
+                                <a href="{{ msg.attachmentUrl }}" class="glow-text" target="_blank"><i class="fas fa-file me-1"></i>Файл</a>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                    <div class="mt-1 d-flex align-items-center gap-2">
+                        <small style="color:var(--gf-muted);font-size:0.75rem;">{{ msg.createdAt|date('H:i') }}</small>
+                        {% if msg.sender.id != app.user.id %}
+                            <button class="btn btn-sm p-0 report-msg-btn" style="color:var(--gf-muted);font-size:0.65rem;background:none;border:none;opacity:0.5;" title="Поскаржитись" data-bs-toggle="modal" data-bs-target="#reportMsgModal{{ msg.id }}">
+                                <i class="fas fa-flag"></i>
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if msg.sender.id != app.user.id %}
+                <div class="modal fade" id="reportMsgModal{{ msg.id }}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-sm">
+                        <div class="modal-content" style="background:var(--gf-card);border:1px solid var(--gf-border);border-radius:16px;">
+                            <div class="modal-header" style="border-color:var(--gf-border);">
+                                <h6 class="modal-title" style="color:var(--gf-text)"><i class="fas fa-flag me-1" style="color:var(--gf-danger)"></i>Скарга на повідомлення</h6>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Закрити"></button>
+                            </div>
+                            <form action="{{ path('app_report_message', {id: msg.id}) }}" method="post">
+                                <div class="modal-body">
+                                    <textarea name="reason" class="form-control form-control-sm" rows="2" placeholder="Причина скарги..." required></textarea>
+                                </div>
+                                <div class="modal-footer" style="border-color:var(--gf-border);">
+                                    <button type="submit" class="btn btn-gf-danger btn-sm"><i class="fas fa-paper-plane me-1"></i>Надіслати</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="chat-input">
+            <div id="filePreview" style="display:none;padding:0.5rem 1rem;background:var(--gf-dark);border-bottom:1px solid var(--gf-border);">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fas fa-image" style="color:var(--gf-primary)"></i>
+                    <span id="fileName" style="color:var(--gf-text);font-size:0.85rem;"></span>
+                    <button type="button" id="fileClear" class="btn btn-sm" style="color:var(--gf-danger);padding:0;" aria-label="Видалити файл">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <form id="chatForm" class="d-flex gap-2 p-3" enctype="multipart/form-data" style="margin:0;">
+                <input type="text" name="message" id="chatInput" class="form-control" placeholder="Написати повідомлення..." autocomplete="off">
+                <label class="btn btn-gf-outline" style="cursor:pointer;" aria-label="Прикріпити файл" role="button">
+                    <i class="fas fa-paperclip"></i>
+                    <input type="file" name="attachment" id="fileInput" style="display:none;" accept="image/*,.pdf,.doc,.docx" aria-label="Вибрати файл">
+                </label>
+                <button type="submit" class="btn btn-gf" id="sendBtn" aria-label="Надіслати"><i class="fas fa-paper-plane"></i></button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block stylesheets %}
+<style>
+    .chat-message:hover .report-msg-btn { opacity: 1 !important; }
+    .report-msg-btn:hover { color: var(--gf-danger) !important; }
+</style>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+const chatBox = document.getElementById('chatMessages');
+const chatForm = document.getElementById('chatForm');
+const chatInput = document.getElementById('chatInput');
+const fileInput = document.getElementById('fileInput');
+const filePreview = document.getElementById('filePreview');
+const fileName = document.getElementById('fileName');
+const fileClear = document.getElementById('fileClear');
+const sendBtn = document.getElementById('sendBtn');
+const currentUserId = {{ app.user.id }};
+const sendUrl = '{{ path("app_lobby_chat_send", {id: lobby.id}) }}';
+const pollUrl = '{{ path("app_lobby_chat_poll", {id: lobby.id}) }}';
+
+function scrollToBottom() {
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+scrollToBottom();
+
+// File preview
+fileInput.addEventListener('change', () => {
+    if (fileInput.files.length > 0) {
+        fileName.textContent = fileInput.files[0].name;
+        filePreview.style.display = 'block';
+    }
+});
+
+fileClear.addEventListener('click', () => {
+    fileInput.value = '';
+    filePreview.style.display = 'none';
+});
+
+function getLastMessageId() {
+    const msgs = chatBox.querySelectorAll('.chat-message[data-id]');
+    if (msgs.length === 0) return 0;
+    return parseInt(msgs[msgs.length - 1].dataset.id) || 0;
+}
+
+function renderMessage(msg) {
+    const isOwn = msg.senderId === currentUserId;
+    const existing = chatBox.querySelector(`[data-id="${msg.id}"]`);
+    if (existing) return;
+
+    let avatarHtml = '';
+    if (!isOwn) {
+        const letter = msg.senderName.charAt(0).toUpperCase();
+        if (msg.senderAvatar && msg.senderAvatar.startsWith('http')) {
+            avatarHtml = `<img src="${msg.senderAvatar}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid #6c5ce7;" alt="${msg.senderName}">`;
+        } else if (msg.senderAvatar && msg.senderAvatar.startsWith('avatar:')) {
+            avatarHtml = `<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#6c5ce7,#a855f7);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:0.9rem;border:2px solid #6c5ce7;flex-shrink:0;"><i class="fas fa-user"></i></div>`;
+        } else {
+            avatarHtml = `<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#6c5ce7,#a855f7);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:0.9rem;border:2px solid #6c5ce7;flex-shrink:0;">${letter}</div>`;
+        }
+    }
+
+    let attachHtml = '';
+    if (msg.attachmentUrl) {
+        if (msg.type === 'image') {
+            attachHtml = `<div class="mt-2"><img src="${msg.attachmentUrl}" style="max-width:200px;border-radius:8px;" alt="Зображення"></div>`;
+        } else {
+            attachHtml = `<div class="mt-2"><a href="${msg.attachmentUrl}" class="glow-text" target="_blank"><i class="fas fa-file me-1"></i>Файл</a></div>`;
+        }
+    }
+
+    const html = `
+        <div class="chat-message ${isOwn ? 'own' : ''}" data-id="${msg.id}">
+            ${!isOwn ? `<div>${avatarHtml}</div>` : ''}
+            <div class="chat-bubble">
+                ${!isOwn ? `<small style="color:var(--gf-primary);font-weight:600;">${msg.senderName}</small><br>` : ''}
+                ${msg.content}
+                ${attachHtml}
+                <div class="mt-1"><small style="color:var(--gf-muted);font-size:0.75rem;">${msg.createdAt}</small></div>
+            </div>
+        </div>`;
+
+    chatBox.insertAdjacentHTML('beforeend', html);
+    scrollToBottom();
+}
+
+// Send message via AJAX
+chatForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(chatForm);
+    const msg = chatInput.value.trim();
+    const hasFile = fileInput.files.length > 0;
+
+    if (!msg && !hasFile) return;
+
+    // Disable send button during upload
+    sendBtn.disabled = true;
+    sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+    chatInput.value = '';
+    filePreview.style.display = 'none';
+
+    try {
+        const res = await fetch(sendUrl, {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        });
+        const data = await res.json();
+        if (data.message) {
+            renderMessage(data.message);
+        }
+    } catch (err) {
+        console.error('Send error:', err);
+    }
+
+    // Reset
+    sendBtn.disabled = false;
+    sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+    fileInput.value = '';
+    chatInput.focus();
+});
+
+// Poll for new messages every 2 seconds
+setInterval(async () => {
+    try {
+        const lastId = getLastMessageId();
+        const res = await fetch(`${pollUrl}?after=${lastId}`);
+        const data = await res.json();
+        if (data.messages) {
+            data.messages.forEach(renderMessage);
+        }
+    } catch (err) {}
+}, 2000);
+
+// Send on Enter
+chatInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        chatForm.dispatchEvent(new Event('submit'));
+    }
+});
+</script>
+{% endblock %}

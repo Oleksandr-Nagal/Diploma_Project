@@ -1,0 +1,28 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Повідомлення{% endblock %}
+
+{% block body %}
+<div class="page-header">
+    <h1><i class="fas fa-envelope me-2" style="color:var(--gf-primary)"></i>Особисті повідомлення</h1>
+</div>
+
+{% if conversations is empty %}
+    <div class="card-gf text-center py-5">
+        <i class="fas fa-comments fa-4x mb-3" style="color:var(--gf-muted)"></i>
+        <h4 style="color:var(--gf-muted)">Немає повідомлень</h4>
+        <p style="color:var(--gf-muted)">Знайдіть друзів і почніть спілкування!</p>
+    </div>
+{% else %}
+    {% for conv in conversations %}
+    <a href="{{ path('app_private_chat', {id: conv.user.id}) }}" class="card-gf d-flex align-items-center gap-3 mb-2 text-decoration-none">
+        {{ user_avatar(conv.user.avatar, conv.user.username, 'md') }}
+        <div class="flex-fill">
+            <strong style="color:var(--gf-text)">{{ conv.user.username }}</strong>
+            <p class="mb-0 small" style="color:var(--gf-muted)">{{ conv.lastMessage.content|slice(0, 60) }}{% if conv.lastMessage.content|length > 60 %}...{% endif %}</p>
+        </div>
+        <small style="color:var(--gf-muted)">{{ conv.lastMessage.createdAt|date('d.m H:i') }}</small>
+    </a>
+    {% endfor %}
+{% endif %}
+{% endblock %}
