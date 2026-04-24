@@ -1,0 +1,131 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Лобі{% endblock %}
+
+{% block body %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1><i class="fas fa-door-open me-2" style="color:var(--gf-primary)"></i>Пошук лобі</h1>
+        <p style="color:var(--gf-muted)">Знайди кімнату для гри або створи свою</p>
+    </div>
+    <a href="{{ path('app_lobby_create') }}" class="btn btn-gf">
+        <i class="fas fa-plus me-1"></i> Створити лобі
+    </a>
+</div>
+
+{# Filters #}
+<div class="card-gf mb-4">
+    <form method="get" class="row g-3">
+        <div class="col-md-12 mb-2">
+            <div class="input-group">
+                <span class="input-group-text" style="background:var(--gf-dark);border:2px solid #2a2a4a;border-right:none;color:var(--gf-primary);"><i class="fas fa-search"></i></span>
+                <input type="text" name="search" class="form-control form-control-lg" value="{{ filters.search }}" placeholder="Пошук лобі за назвою..." style="border-left:none;">
+            </div>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Гра</label>
+            <select name="game" class="form-select">
+                <option value="">Всі ігри</option>
+                {% for game in games %}
+                    <option value="{{ game.id }}" {{ filters.game == game.id ? 'selected' : '' }}>{{ game.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Місто</label>
+            <input type="text" name="city" class="form-control" value="{{ filters.city }}" placeholder="Будь-яке">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Мова</label>
+            <select name="language" class="form-select">
+                <option value="">Будь-яка</option>
+                <option value="uk" {{ filters.language == 'uk' ? 'selected' : '' }}>Українська</option>
+                <option value="en" {{ filters.language == 'en' ? 'selected' : '' }}>English</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Рівень</label>
+            <select name="skillLevel" class="form-select">
+                <option value="">Будь-який</option>
+                <option value="beginner" {{ filters.skillLevel == 'beginner' ? 'selected' : '' }}>Новачок</option>
+                <option value="intermediate" {{ filters.skillLevel == 'intermediate' ? 'selected' : '' }}>Середній</option>
+                <option value="advanced" {{ filters.skillLevel == 'advanced' ? 'selected' : '' }}>Досвідчений</option>
+                <option value="pro" {{ filters.skillLevel == 'pro' ? 'selected' : '' }}>Про</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Голосовий чат</label>
+            <div class="form-check mt-2">
+                <input type="checkbox" class="form-check-input" name="voiceChat" value="1" {{ filters.voiceChat ? 'checked' : '' }}>
+                <label class="form-check-label" style="color:var(--gf-muted)">Тільки з voice</label>
+            </div>
+        </div>
+        <div class="col-md-1 d-flex align-items-end">
+            <button type="submit" class="btn btn-gf w-100" aria-label="Пошук"><i class="fas fa-search"></i></button>
+        </div>
+    </form>
+</div>
+
+{# Lobbies List #}
+{% if lobbies is empty %}
+    <div class="card-gf text-center py-5">
+        <i class="fas fa-ghost fa-4x mb-3" style="color:var(--gf-muted)"></i>
+        <h4 style="color:var(--gf-muted)">Немає лобі за вашими фільтрами</h4>
+        <p style="color:var(--gf-muted)">Спробуйте змінити фільтри або створіть своє лобі</p>
+        <a href="{{ path('app_lobby_create') }}" class="btn btn-gf"><i class="fas fa-plus me-1"></i> Створити</a>
+    </div>
+{% else %}
+    <div class="row g-3">
+        {% for lobby in lobbies %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card-gf h-100">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="badge-gf"><i class="fas fa-gamepad me-1"></i>{{ lobby.game.name }}</span>
+                    {% if lobby.isPrivate %}
+                        <span class="badge-gf badge-gf-warning"><i class="fas fa-lock me-1"></i>Приватне</span>
+                    {% endif %}
+                </div>
+
+                <h5 class="mb-2">
+                    <a href="{{ path('app_lobby_show', {id: lobby.id}) }}" class="text-decoration-none" style="color:var(--gf-text)">
+                        {{ lobby.title }}
+                    </a>
+                </h5>
+
+                {% if lobby.description %}
+                    <p class="small mb-2" style="color:var(--gf-muted)">{{ lobby.description|slice(0, 80) }}{% if lobby.description|length > 80 %}...{% endif %}</p>
+                {% endif %}
+
+                <div class="d-flex gap-2 flex-wrap mb-3">
+                    <span class="badge-gf badge-gf-success">
+                        <i class="fas fa-users me-1"></i>{{ lobby.currentMemberCount }}/{{ lobby.maxMembers }}
+                    </span>
+                    {% if lobby.skillLevel != 'any' %}
+                        <span class="badge-gf badge-gf-warning">{{ lobby.skillLevel }}</span>
+                    {% endif %}
+                    {% if lobby.language %}
+                        <span class="badge-gf"><i class="fas fa-globe me-1"></i>{{ lobby.language }}</span>
+                    {% endif %}
+                    {% if lobby.city %}
+                        <span class="badge-gf"><i class="fas fa-map-marker-alt me-1"></i>{{ lobby.city }}</span>
+                    {% endif %}
+                    {% if lobby.voiceChat %}
+                        <span class="badge-gf" style="color:var(--gf-secondary)"><i class="fas fa-microphone me-1"></i>Voice</span>
+                    {% endif %}
+                    {% if lobby.scheduledAt %}
+                        <span class="badge-gf badge-gf-warning"><i class="fas fa-clock me-1"></i>{{ lobby.scheduledAt|date('d.m H:i') }}</span>
+                    {% endif %}
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <small style="color:var(--gf-muted)">
+                        <i class="fas fa-user me-1"></i>{{ lobby.owner.username }}
+                    </small>
+                    <a href="{{ path('app_lobby_show', {id: lobby.id}) }}" class="btn btn-gf btn-sm">Детальніше</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% endif %}
+{% endblock %}

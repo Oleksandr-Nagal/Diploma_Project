@@ -1,0 +1,29 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Заплановані лобі{% endblock %}
+
+{% block body %}
+<div class="page-header">
+    <h1><i class="fas fa-calendar-alt me-2" style="color:var(--gf-warning)"></i>Заплановані лобі</h1>
+</div>
+
+{% for lobby in lobbies %}
+<div class="card-gf mb-3">
+    <div class="d-flex justify-content-between">
+        <div>
+            <h5><a href="{{ path('app_lobby_show', {id: lobby.id}) }}" class="text-decoration-none" style="color:var(--gf-text)">{{ lobby.title }}</a></h5>
+            <div class="d-flex gap-2">
+                <span class="badge-gf"><i class="fas fa-gamepad me-1"></i>{{ lobby.game.name }}</span>
+                <span class="badge-gf badge-gf-warning"><i class="fas fa-clock me-1"></i>{{ lobby.scheduledAt|date('d.m.Y H:i') }}</span>
+                <span class="badge-gf badge-gf-success"><i class="fas fa-users me-1"></i>{{ lobby.currentMemberCount }}/{{ lobby.maxMembers }}</span>
+            </div>
+        </div>
+        <a href="{{ path('app_lobby_show', {id: lobby.id}) }}" class="btn btn-gf btn-sm align-self-center">Детальніше</a>
+    </div>
+</div>
+{% else %}
+    <div class="card-gf text-center py-4">
+        <p style="color:var(--gf-muted)">Немає запланованих лобі</p>
+    </div>
+{% endfor %}
+{% endblock %}

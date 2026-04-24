@@ -1,0 +1,194 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ lobby.title }}{% endblock %}
+
+{% block body %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card-gf mb-4">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <h2>{{ lobby.title }}</h2>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <span class="badge-gf"><i class="fas fa-gamepad me-1"></i>{{ lobby.game.name }}</span>
+                        <span class="badge-gf badge-gf-success"><i class="fas fa-users me-1"></i>{{ lobby.currentMemberCount }}/{{ lobby.maxMembers }}</span>
+                        {% if lobby.skillLevel != 'any' %}<span class="badge-gf badge-gf-warning">{{ lobby.skillLevel }}</span>{% endif %}
+                        {% if lobby.language %}<span class="badge-gf"><i class="fas fa-globe me-1"></i>{{ lobby.language }}</span>{% endif %}
+                        {% if lobby.city %}<span class="badge-gf"><i class="fas fa-map-marker-alt me-1"></i>{{ lobby.city }}</span>{% endif %}
+                        {% if lobby.voiceChat %}<span class="badge-gf" style="color:var(--gf-secondary)"><i class="fas fa-microphone me-1"></i>Голосовий чат</span>{% endif %}
+                        {% if lobby.isPrivate %}<span class="badge-gf badge-gf-warning"><i class="fas fa-lock me-1"></i>Приватне</span>{% endif %}
+                        {% if lobby.scheduledAt %}<span class="badge-gf badge-gf-warning"><i class="fas fa-clock me-1"></i>{{ lobby.scheduledAt|date('d.m.Y H:i') }}</span>{% endif %}
+                    </div>
+                </div>
+                <span class="badge-gf {{ lobby.status == 'open' ? 'badge-gf-success' : 'badge-gf-danger' }}">
+                    {{ lobby.status }}
+                </span>
+            </div>
+
+            {% if lobby.description %}
+                <p style="color:var(--gf-muted)">{{ lobby.description }}</p>
+            {% endif %}
+
+            {% if lobby.minAge or lobby.maxAge %}
+                <p style="color:var(--gf-muted)">
+                    <i class="fas fa-birthday-cake me-1"></i> Вік:
+                    {% if lobby.minAge %}від {{ lobby.minAge }}{% endif %}
+                    {% if lobby.maxAge %}до {{ lobby.maxAge }}{% endif %}
+                </p>
+            {% endif %}
+
+            <div class="mt-3 d-flex gap-2">
+                {% if not isMember and not isOwner and not isPending and lobby.status == 'open' %}
+                    <form action="{{ path('app_lobby_join', {id: lobby.id}) }}" method="post">
+                        <button class="btn btn-gf"><i class="fas fa-sign-in-alt me-1"></i> Приєднатися</button>
+                    </form>
+                {% endif %}
+
+                {% if isPending %}
+                    <button class="btn btn-gf-outline" disabled>
+                        <i class="fas fa-clock me-1"></i> Заявку надіслано, очікуйте...
+                    </button>
+                {% endif %}
+
+                {% if isMember or isOwner %}
+                    <a href="{{ path('app_lobby_chat', {id: lobby.id}) }}" class="btn btn-gf-outline">
+                        <i class="fas fa-comments me-1"></i> Чат кімнати
+                    </a>
+                {% endif %}
+
+                {% if isMember and not isOwner %}
+                    <form action="{{ path('app_lobby_leave', {id: lobby.id}) }}" method="post">
+                        <button class="btn btn-gf-danger"><i class="fas fa-sign-out me-1"></i> Покинути</button>
+                    </form>
+                {% endif %}
+
+                {% if isOwner and lobby.status != 'closed' %}
+                    <form action="{{ path('app_lobby_close', {id: lobby.id}) }}" method="post" onsubmit="return confirm('Закрити лобі? Цю дію не можна скасувати.')">
+                        <button class="btn btn-gf-danger"><i class="fas fa-lock me-1"></i> Закрити кімнату</button>
+                    </form>
+                {% endif %}
+
+                {% if not isOwner %}
+                    <button class="btn btn-sm" style="color:var(--gf-muted);background:transparent;border:1px solid var(--gf-border);border-radius:8px;" type="button" data-bs-toggle="modal" data-bs-target="#reportLobbyOwner">
+                        <i class="fas fa-flag me-1"></i> Скарга
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+
+        {# Chat preview #}
+        {% if isMember or isOwner %}
+        <div class="card-gf">
+            <h5><i class="fas fa-comments me-2" style="color:var(--gf-primary)"></i>Чат кімнати</h5>
+            <p style="color:var(--gf-muted)">
+                <a href="{{ path('app_lobby_chat', {id: lobby.id}) }}" class="text-decoration-none glow-text">Відкрити повний чат</a>
+            </p>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-lg-4">
+        {# Members #}
+        <div class="card-gf mb-4">
+            <h5 class="mb-3"><i class="fas fa-users me-2" style="color:var(--gf-secondary)"></i>Учасники</h5>
+
+            {% for member in lobby.members %}
+                {% if member.status == 'accepted' %}
+                <div class="d-flex align-items-center gap-2 mb-2 p-2" style="background:var(--gf-dark);border-radius:10px;">
+                    {{ user_avatar(member.user.avatar, member.user.username, 'sm') }}
+                    <div class="flex-fill">
+                        <a href="{{ path('app_profile_public', {id: member.user.id}) }}" class="text-decoration-none" style="color:var(--gf-text)">
+                            {{ member.user.username }}
+                        </a>
+                        {% if member.role == 'owner' %}
+                            <span class="badge-gf-warning" style="font-size:0.7rem;padding:0.1rem 0.4rem;border-radius:8px;">Власник</span>
+                        {% endif %}
+                    </div>
+                    <small style="color:var(--gf-muted)">{{ member.user.rating|round(0) }}%</small>
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        {# Pending requests (for owner) #}
+        {% if isOwner %}
+            {% set pendingMembers = lobby.members|filter(m => m.status == 'pending') %}
+            {% if pendingMembers|length > 0 %}
+            <div class="card-gf">
+                <h5 class="mb-3"><i class="fas fa-clock me-2" style="color:var(--gf-warning)"></i>Заявки</h5>
+                {% for member in pendingMembers %}
+                <div class="d-flex align-items-center gap-2 mb-2 p-2" style="background:var(--gf-dark);border-radius:10px;">
+                    <div class="flex-fill">
+                        <a href="{{ path('app_profile_public', {id: member.user.id}) }}" class="text-decoration-none" style="color:var(--gf-text)">
+                            {{ member.user.username }}
+                        </a>
+                        <br><small style="color:var(--gf-muted)">Рейтинг: {{ member.user.rating|round(0) }}%</small>
+                    </div>
+                    <form action="{{ path('app_lobby_accept', {id: lobby.id, memberId: member.id}) }}" method="post" class="d-inline">
+                        <button class="btn btn-gf-success btn-sm" aria-label="Прийняти"><i class="fas fa-check"></i></button>
+                    </form>
+                    <form action="{{ path('app_lobby_reject', {id: lobby.id, memberId: member.id}) }}" method="post" class="d-inline">
+                        <button class="btn btn-gf-danger btn-sm" aria-label="Відхилити"><i class="fas fa-times"></i></button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        {% endif %}
+
+        {# Owner info #}
+        <div class="card-gf mt-4">
+            <h5 class="mb-3">Власник лобі</h5>
+            <div class="d-flex align-items-center gap-3">
+                {{ user_avatar(lobby.owner.avatar, lobby.owner.username, 'md') }}
+                <div>
+                    <a href="{{ path('app_profile_public', {id: lobby.owner.id}) }}" class="text-decoration-none" style="color:var(--gf-text)">
+                        <strong>{{ lobby.owner.username }}</strong>
+                    </a>
+                    <br><small style="color:var(--gf-muted)">Рейтинг: {{ lobby.owner.rating|round(0) }}%</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if not isOwner %}
+<div class="modal fade" id="reportLobbyOwner" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content" style="background:var(--gf-card);border:1px solid var(--gf-border);border-radius:16px;">
+            <div class="modal-header" style="border-color:var(--gf-border);">
+                <h6 class="modal-title" style="color:var(--gf-text)"><i class="fas fa-flag me-1" style="color:var(--gf-danger)"></i>Скарга на лобі</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Закрити"></button>
+            </div>
+            <form action="{{ path('app_report_user', {id: lobby.owner.id}) }}" method="post">
+                <div class="modal-body">
+                    <textarea name="reason" class="form-control form-control-sm" rows="2" placeholder="Опишіть проблему..." required></textarea>
+                </div>
+                <div class="modal-footer" style="border-color:var(--gf-border);">
+                    <button type="submit" class="btn btn-gf-danger btn-sm"><i class="fas fa-paper-plane me-1"></i>Надіслати</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block javascripts %}
+<script>
+const statusUrl = '{{ path("app_lobby_status", {id: lobby.id}) }}';
+let currentStatus = '{{ isPending ? "pending" : (isMember ? "accepted" : (isOwner ? "owner" : "none")) }}';
+
+setInterval(async () => {
+    try {
+        const res = await fetch(statusUrl);
+        const data = await res.json();
+
+        if (data.memberStatus !== currentStatus) {
+            window.location.reload();
+            return;
+        }
+    } catch(e) {}
+}, 3000);
+</script>
+{% endblock %}

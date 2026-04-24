@@ -156,6 +156,9 @@
             {% if app.user %}
                 <ul class="navbar-nav me-auto" id="gf-nav-links">
                     <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_lobbies') }}"><i class="fas fa-door-open me-1"></i> Лобі</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="{{ path('app_games') }}"><i class="fas fa-trophy me-1"></i> Ігри</a>
                     </li>
                 </ul>

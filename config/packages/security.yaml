@@ -35,12 +35,13 @@ security:
     ROLE_ADMIN: [ROLE_MODERATOR, ROLE_USER]
 
   access_control:
-    - { path: ^/login, roles: PUBLIC_ACCESS }
-    - { path: ^/register, roles: PUBLIC_ACCESS }
-    - { path: ^/oauth, roles: PUBLIC_ACCESS }
-    - { path: ^/admin, roles: ROLE_ADMIN }
-    - { path: ^/moderator, roles: ROLE_MODERATOR }
-    - { path: ^/, roles: ROLE_USER }
+#    - { path: ^/login, roles: PUBLIC_ACCESS }
+#    - { path: ^/register, roles: PUBLIC_ACCESS }
+#    - { path: ^/oauth, roles: PUBLIC_ACCESS }
+#    - { path: ^/admin, roles: ROLE_ADMIN }
+#    - { path: ^/moderator, roles: ROLE_MODERATOR }
+#    - { path: ^/, roles: ROLE_USER }
+    - { path: ^/, roles: PUBLIC_ACCESS  }
 
 when@test:
   security:

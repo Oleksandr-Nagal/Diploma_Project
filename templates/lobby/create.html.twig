@@ -1,0 +1,40 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Створити лобі{% endblock %}
+
+{% block body %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="page-header">
+            <h1><i class="fas fa-plus-circle me-2" style="color:var(--gf-primary)"></i>Конструктор лобі</h1>
+            <p style="color:var(--gf-muted)">Налаштуй кімнату під себе і знайди ідеальних тіммейтів</p>
+        </div>
+
+        <div class="card-gf">
+            {{ form_start(form) }}
+                {% for field in form %}
+                    {% if field.vars.name != '_token' %}
+                    <div class="mb-3">
+                        {{ form_label(field) }}
+                        {% if field.vars.block_prefixes[1] == 'checkbox' %}
+                            <div>{{ form_widget(field) }}</div>
+                        {% elseif field.vars.block_prefixes[1] == 'choice' or field.vars.block_prefixes[1] == 'entity' %}
+                            {{ form_widget(field, {'attr': {'class': 'form-select'}}) }}
+                        {% elseif field.vars.block_prefixes[1] == 'textarea' %}
+                            {{ form_widget(field, {'attr': {'class': 'form-control'}}) }}
+                        {% else %}
+                            {{ form_widget(field, {'attr': {'class': 'form-control'}}) }}
+                        {% endif %}
+                        {{ form_errors(field) }}
+                    </div>
+                    {% endif %}
+                {% endfor %}
+
+                <button type="submit" class="btn btn-gf">
+                    <i class="fas fa-rocket me-1"></i> Створити лобі
+                </button>
+            {{ form_end(form) }}
+        </div>
+    </div>
+</div>
+{% endblock %}
