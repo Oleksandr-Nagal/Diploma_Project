@@ -26,6 +26,7 @@ security:
         lifetime: 604800
       custom_authenticators:
         - App\Security\GoogleAuthenticator
+        - App\Security\DiscordAuthenticator
 
       entry_point: form_login
 
