@@ -1,0 +1,55 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Створити подію{% endblock %}
+
+{% block body %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="page-header">
+            <h1><i class="fas fa-calendar-plus me-2" style="color:var(--gf-warning)"></i>Створити подію</h1>
+        </div>
+
+        <div class="card-gf">
+            <form method="post">
+                <div class="mb-3">
+                    <label class="form-label">Назва події</label>
+                    <input type="text" name="title" class="form-control" required placeholder="Наприклад: Турнір CS2 5v5">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Опис</label>
+                    <textarea name="description" class="form-control" rows="3" placeholder="Деталі події..."></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Гра</label>
+                    <select name="game_id" class="form-select" required>
+                        <option value="">Оберіть гру</option>
+                        {% for game in games %}
+                            <option value="{{ game.id }}">{{ game.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Початок</label>
+                            <input type="datetime-local" name="start_at" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Кінець (опціонально)</label>
+                            <input type="datetime-local" name="end_at" class="form-control">
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Макс. учасників</label>
+                    <input type="number" name="max_participants" class="form-control" value="10" min="2" max="100">
+                </div>
+
+                <button type="submit" class="btn btn-gf"><i class="fas fa-calendar-check me-1"></i> Створити подію</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
