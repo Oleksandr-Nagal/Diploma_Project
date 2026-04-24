@@ -211,6 +211,9 @@
             {% if app.user %}
                 <ul class="navbar-nav me-auto" id="gf-nav-links">
                     <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_events') }}"><i class="fas fa-calendar me-1"></i> Події</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="{{ path('app_leaderboard') }}"><i class="fas fa-ranking-star me-1"></i> Рейтинг</a>
                     </li>
                     <li class="nav-item">
