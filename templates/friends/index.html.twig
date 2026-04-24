@@ -1,0 +1,69 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Друзі{% endblock %}
+
+{% block body %}
+    <div class="page-header">
+        <h1><i class="fas fa-user-group me-2" style="color:var(--gf-primary)"></i>Друзі</h1>
+    </div>
+
+    {# Pending Requests #}
+    {% if pending|length > 0 %}
+        <div class="card-gf mb-4">
+            <h5 class="mb-3"><i class="fas fa-clock me-2" style="color:var(--gf-warning)"></i>Запити дружби ({{ pending|length }})</h5>
+            {% for fr in pending %}
+                <div class="d-flex align-items-center gap-3 mb-2 p-2" style="background:var(--gf-dark);border-radius:10px;">
+                    {{ user_avatar(fr.requester.avatar, fr.requester.username, 'sm') }}
+                    <div class="flex-fill">
+                        <a href="{{ path('app_profile_public', {id: fr.requester.id}) }}" class="text-decoration-none" style="color:var(--gf-text)">
+                            <strong>{{ fr.requester.username }}</strong>
+                        </a>
+                        <br><small style="color:var(--gf-muted)">Рейтинг: {{ fr.requester.rating|round(0) }}%</small>
+                    </div>
+                    <form action="{{ path('app_friend_accept', {id: fr.id}) }}" method="post" class="d-inline">
+                        <button class="btn btn-gf-success btn-sm"><i class="fas fa-check me-1"></i>Прийняти</button>
+                    </form>
+                    <form action="{{ path('app_friend_reject', {id: fr.id}) }}" method="post" class="d-inline">
+                        <button class="btn btn-gf-danger btn-sm"><i class="fas fa-times me-1"></i>Відхилити</button>
+                    </form>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {# Friends List #}
+    <div class="card-gf">
+        <h5 class="mb-3"><i class="fas fa-users me-2" style="color:var(--gf-success)"></i>Мої друзі</h5>
+
+        {% if friends is empty %}
+            <div class="text-center py-4">
+                <i class="fas fa-user-plus fa-3x mb-3" style="color:var(--gf-muted)"></i>
+                <p style="color:var(--gf-muted)">У вас поки немає друзів. Шукайте напарників у лобі!</p>
+            </div>
+        {% else %}
+            <div class="row g-3">
+                {% for fr in friends %}
+                    {% set friend = fr.requester.id == currentUser.id ? fr.receiver : fr.requester %}
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center gap-3 p-3" style="background:var(--gf-dark);border-radius:12px;">
+                            {{ user_avatar(friend.avatar, friend.username, 'md') }}
+                            <div class="flex-fill">
+                                <a href="{{ path('app_profile_public', {id: friend.id}) }}" class="text-decoration-none" style="color:var(--gf-text)">
+                                    <strong>{{ friend.username }}</strong>
+                                </a>
+                                {% if friend.premium %}<span class="premium-badge ms-1">PRO</span>{% endif %}
+                                <br><small style="color:var(--gf-muted)">Рейтинг: {{ friend.rating|round(0) }}%</small>
+                            </div>
+                            <div class="d-flex flex-column gap-1">
+                                <a href="{{ path('app_private_chat', {id: friend.id}) }}" class="btn btn-gf btn-sm"><i class="fas fa-envelope"></i></a>
+                                <form action="{{ path('app_friend_remove', {id: fr.id}) }}" method="post">
+                                    <button class="btn btn-gf-danger btn-sm"><i class="fas fa-user-minus"></i></button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
