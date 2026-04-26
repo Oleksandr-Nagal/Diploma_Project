@@ -13,6 +13,8 @@ framework:
             verify_peer: true
             cafile: '%kernel.project_dir%/cacert.pem'
 
+    error_controller: App\Controller\ErrorController::show
+
 when@test:
     framework:
         test: true
