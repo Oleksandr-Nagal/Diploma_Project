@@ -1,0 +1,122 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Підбір партнерів{% endblock %}
+
+{% block body %}
+<div class="page-header">
+    <h1><i class="fas fa-magic me-2" style="color:var(--gf-primary)"></i>Підбір партнерів</h1>
+    <p style="color:var(--gf-muted)">Гравці, які найкраще підходять вам за іграми, мовою, містом та рейтингом</p>
+</div>
+
+{% if profileComplete.percent < 80 %}
+<div class="card-gf mb-4" style="border-color:var(--gf-warning);">
+    <div class="d-flex align-items-center gap-3">
+        <div>
+            <i class="fas fa-exclamation-triangle fa-2x" style="color:var(--gf-warning)"></i>
+        </div>
+        <div class="flex-fill">
+            <h6 class="mb-1" style="color:var(--gf-warning)">Заповніть профіль для кращих рекомендацій</h6>
+            <p class="mb-1" style="color:var(--gf-muted)">
+                Рівень заповненості: <strong style="color:var(--gf-text)">{{ profileComplete.percent }}%</strong>
+            </p>
+            <div class="progress mb-2" style="height:6px;background:var(--gf-dark);">
+                <div class="progress-bar" style="width:{{ profileComplete.percent }}%;background:linear-gradient(90deg,var(--gf-primary),var(--gf-secondary));"></div>
+            </div>
+            <small style="color:var(--gf-muted)">
+                Додайте: {{ profileComplete.missing|join(', ') }}
+            </small>
+        </div>
+        <a href="{{ path('app_profile_edit') }}" class="btn btn-gf btn-sm flex-shrink-0">
+            <i class="fas fa-edit me-1"></i> Заповнити
+        </a>
+    </div>
+</div>
+{% endif %}
+
+{% if recommendations is empty %}
+    <div class="card-gf text-center py-5">
+        <i class="fas fa-users-slash fa-4x mb-3" style="color:var(--gf-muted)"></i>
+        <h4 style="color:var(--gf-muted)">Поки немає рекомендацій</h4>
+        <p style="color:var(--gf-muted)">Заповніть профіль, приєднайтесь до лобі та підключіть Steam — система знайде для вас ідеальних напарників.</p>
+        <div class="d-flex gap-2 justify-content-center">
+            <a href="{{ path('app_profile_edit') }}" class="btn btn-gf"><i class="fas fa-user-edit me-1"></i> Налаштувати профіль</a>
+            <a href="{{ path('app_lobbies') }}" class="btn btn-gf-outline"><i class="fas fa-door-open me-1"></i> Шукати лобі</a>
+        </div>
+    </div>
+{% else %}
+    <div class="row g-3">
+        {% for rec in recommendations %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card-gf h-100">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    {{ user_avatar(rec.user.avatar, rec.user.username, 'md') }}
+                    <div class="flex-fill">
+                        <h5 class="mb-0">
+                            <a href="{{ path('app_profile_public', {id: rec.user.id}) }}" class="text-decoration-none" style="color:var(--gf-text)">
+                                {{ rec.user.username }}
+                            </a>
+                            {% if rec.user.premium %}<span class="premium-badge ms-1">PRO</span>{% endif %}
+                        </h5>
+                        <div class="d-flex align-items-center gap-2 mt-1">
+                            {% if rec.user.rating > 0 %}
+                                <span class="{{ rec.user.rating >= 70 ? 'rating-positive' : (rec.user.rating >= 40 ? '' : 'rating-negative') }}" style="font-weight:700;">
+                                    {{ rec.user.rating|round(0) }}%
+                                </span>
+                            {% endif %}
+                            {% if rec.user.totalReviews > 0 %}
+                                <small style="color:var(--gf-muted)">{{ rec.user.totalReviews }} відг.</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <div style="font-size:1.5rem;font-weight:800;background:linear-gradient(135deg,var(--gf-secondary),var(--gf-primary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">
+                            {{ rec.score|round(0) }}
+                        </div>
+                        <small style="color:var(--gf-muted)">match</small>
+                    </div>
+                </div>
+
+                {% if rec.user.bio %}
+                    <p class="small mb-2" style="color:var(--gf-muted)">{{ rec.user.bio|slice(0, 80) }}{% if rec.user.bio|length > 80 %}...{% endif %}</p>
+                {% endif %}
+
+                <div class="d-flex flex-wrap gap-1 mb-3">
+                    {% for reason in rec.reasons %}
+                        <span class="badge-gf" style="font-size:0.75rem;">
+                            <i class="fas {{ reason.icon }} me-1"></i>{{ reason.text }}
+                        </span>
+                    {% endfor %}
+                </div>
+
+                <div class="d-flex flex-wrap gap-1 mb-3">
+                    {% if rec.user.city %}
+                        <span class="badge-gf badge-gf-success" style="font-size:0.7rem;"><i class="fas fa-map-marker-alt me-1"></i>{{ rec.user.city }}</span>
+                    {% endif %}
+                    {% if rec.user.language %}
+                        <span class="badge-gf badge-gf-success" style="font-size:0.7rem;"><i class="fas fa-globe me-1"></i>{{ rec.user.language }}</span>
+                    {% endif %}
+                    {% if rec.user.age %}
+                        <span class="badge-gf" style="font-size:0.7rem;"><i class="fas fa-birthday-cake me-1"></i>{{ rec.user.age }}</span>
+                    {% endif %}
+                    {% if rec.user.steamId %}
+                        <span class="badge-gf" style="font-size:0.7rem;"><i class="fab fa-steam me-1"></i>Steam</span>
+                    {% endif %}
+                </div>
+
+                <div class="d-flex gap-2">
+                    <a href="{{ path('app_profile_public', {id: rec.user.id}) }}" class="btn btn-gf btn-sm flex-fill">
+                        <i class="fas fa-eye me-1"></i> Профіль
+                    </a>
+                    <form action="{{ path('app_friend_add', {id: rec.user.id}) }}" method="post" class="flex-fill">
+                        <button class="btn btn-gf-outline btn-sm w-100"><i class="fas fa-user-plus me-1"></i> Додати</button>
+                    </form>
+                    <a href="{{ path('app_private_chat', {id: rec.user.id}) }}" class="btn btn-gf-outline btn-sm">
+                        <i class="fas fa-envelope"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% endif %}
+{% endblock %}
