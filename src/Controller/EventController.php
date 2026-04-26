@@ -56,7 +56,7 @@ class EventController extends AbstractController
     public function show(GameEvent $event): Response
     {
         return $this->render('events/show.html.twig', [
-            'event' => $event,
+            'events' => $event,
             'isParticipant' => $event->getParticipants()->contains($this->getUser()),
             'isOrganizer' => $event->getOrganizer() === $this->getUser(),
         ]);

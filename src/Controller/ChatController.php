@@ -201,14 +201,14 @@ class ChatController extends AbstractController
     public function eventChat(GameEvent $event, ChatMessageRepository $chatRepo): Response
     {
         $messages = $chatRepo->createQueryBuilder('m')
-            ->where('m.event = :event')
+            ->where('m.events = :event')
             ->setParameter('event', $event)
             ->orderBy('m.createdAt', 'DESC')
             ->setMaxResults(50)
             ->getQuery()->getResult();
 
-        return $this->render('chat/event.html.twig', [
-            'event' => $event,
+        return $this->render('chat/events.html.twig', [
+            'events' => $event,
             'messages' => array_reverse($messages),
         ]);
     }
@@ -245,7 +245,7 @@ class ChatController extends AbstractController
         $afterId = (int) $request->query->get('after', 0);
 
         $qb = $chatRepo->createQueryBuilder('m')
-            ->where('m.event = :event')
+            ->where('m.events = :event')
             ->setParameter('event', $event)
             ->orderBy('m.createdAt', 'ASC');
 

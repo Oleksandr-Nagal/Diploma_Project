@@ -8,6 +8,7 @@
         "ext-ctype": "*",
         "ext-iconv": "*",
         "amphp/http-client": "4.2.1",
+        "cloudinary/cloudinary_php": "^3.1",
         "doctrine/doctrine-bundle": "^2.18",
         "doctrine/doctrine-migrations-bundle": "^3.7",
         "doctrine/orm": "^3.6",
@@ -63,6 +64,7 @@
         "symfony/polyfill-php82": "*"
     },
     "scripts": {
+      "update-cacert": "curl -o cacert.pem https://curl.se/ca/cacert.pem",
         "auto-scripts": {
             "cache:clear": "symfony-cmd",
             "assets:install %PUBLIC_DIR%": "symfony-cmd",
