@@ -1,4 +1,3 @@
-# see https://symfony.com/doc/current/reference/configuration/framework.html
 framework:
     secret: '%env(APP_SECRET)%'
     #csrf_protection: true
@@ -8,6 +7,11 @@ framework:
 
     #esi: true
     #fragments: true
+
+    http_client:
+        default_options:
+            verify_peer: true
+            cafile: '%kernel.project_dir%/cacert.pem'
 
 when@test:
     framework:
