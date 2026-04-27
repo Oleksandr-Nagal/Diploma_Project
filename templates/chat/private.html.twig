@@ -27,7 +27,11 @@
             {% for msg in messages %}
             <div class="chat-message {{ msg.sender.id == app.user.id ? 'own' : '' }}" data-id="{{ msg.id }}">
                 <div class="chat-bubble">
-                    {{ msg.content }}
+                    {% if msg.type == 'voice' and msg.attachmentUrl %}
+                        <audio controls preload="metadata" src="{{ msg.attachmentUrl }}" style="max-width:260px;"></audio>
+                    {% else %}
+                        {{ msg.content }}
+                    {% endif %}
                     <div class="mt-1 d-flex align-items-center gap-2">
                         <small style="color:var(--gf-muted);font-size:0.75rem;">{{ msg.createdAt|date('H:i') }}</small>
                         {% if msg.sender.id != app.user.id %}
@@ -62,8 +66,12 @@
         </div>
 
         <div class="chat-input">
-            <form id="chatForm" class="d-flex gap-2">
+            <form id="chatForm" class="d-flex gap-2 align-items-center">
                 <input type="text" name="message" id="chatInput" class="form-control" placeholder="Написати повідомлення..." autocomplete="off">
+                <button type="button" id="voiceBtn" class="btn btn-gf-outline" aria-label="Голосове повідомлення" title="Голосове повідомлення (макс. 60с)">
+                    <i class="fas fa-microphone" id="voiceIcon"></i>
+                    <span id="voiceTimer" class="ms-1" style="display:none;font-variant-numeric:tabular-nums;"></span>
+                </button>
                 <button type="submit" class="btn btn-gf" aria-label="Надіслати"><i class="fas fa-paper-plane"></i></button>
             </form>
         </div>
@@ -79,6 +87,7 @@
 {% endblock %}
 
 {% block javascripts %}
+<script src="{{ asset('js/voice-recorder.js') }}"></script>
 <script>
 const chatBox = document.getElementById('chatMessages');
 const chatForm = document.getElementById('chatForm');
@@ -103,10 +112,14 @@ function renderMessage(msg) {
     const existing = chatBox.querySelector(`[data-id="${msg.id}"]`);
     if (existing) return;
 
+    const body = (msg.type === 'voice' && msg.attachmentUrl)
+        ? renderVoiceBubble(msg.attachmentUrl)
+        : msg.content;
+
     const html = `
         <div class="chat-message ${isOwn ? 'own' : ''}" data-id="${msg.id}">
             <div class="chat-bubble">
-                ${msg.content}
+                ${body}
                 <div class="mt-1"><small style="color:var(--gf-muted);font-size:0.75rem;">${msg.createdAt}</small></div>
             </div>
         </div>`;
@@ -157,5 +170,7 @@ chatInput.addEventListener('keydown', (e) => {
         chatForm.dispatchEvent(new Event('submit'));
     }
 });
+
+initVoiceRecorder({ sendUrl: sendUrl, onMessage: renderMessage });
 </script>
 {% endblock %}

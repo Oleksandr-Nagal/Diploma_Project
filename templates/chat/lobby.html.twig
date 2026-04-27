@@ -24,15 +24,19 @@
                     {% if msg.sender.id != app.user.id %}
                         <small style="color:var(--gf-primary);font-weight:600;">{{ msg.sender.username }}</small><br>
                     {% endif %}
-                    {{ msg.content }}
-                    {% if msg.attachmentUrl %}
-                        <div class="mt-2">
-                            {% if msg.type == 'image' %}
-                                <img src="{{ msg.attachmentUrl }}" style="max-width:200px;border-radius:8px;" alt="Зображення">
-                            {% else %}
-                                <a href="{{ msg.attachmentUrl }}" class="glow-text" target="_blank"><i class="fas fa-file me-1"></i>Файл</a>
-                            {% endif %}
-                        </div>
+                    {% if msg.type == 'voice' and msg.attachmentUrl %}
+                        <audio controls preload="metadata" src="{{ msg.attachmentUrl }}" style="max-width:260px;"></audio>
+                    {% else %}
+                        {{ msg.content }}
+                        {% if msg.attachmentUrl %}
+                            <div class="mt-2">
+                                {% if msg.type == 'image' %}
+                                    <img src="{{ msg.attachmentUrl }}" style="max-width:200px;border-radius:8px;" alt="Зображення">
+                                {% else %}
+                                    <a href="{{ msg.attachmentUrl }}" class="glow-text" target="_blank"><i class="fas fa-file me-1"></i>Файл</a>
+                                {% endif %}
+                            </div>
+                        {% endif %}
                     {% endif %}
                     <div class="mt-1 d-flex align-items-center gap-2">
                         <small style="color:var(--gf-muted);font-size:0.75rem;">{{ msg.createdAt|date('H:i') }}</small>
@@ -77,12 +81,16 @@
                     </button>
                 </div>
             </div>
-            <form id="chatForm" class="d-flex gap-2 p-3" enctype="multipart/form-data" style="margin:0;">
+            <form id="chatForm" class="d-flex gap-2 p-3 align-items-center" enctype="multipart/form-data" style="margin:0;">
                 <input type="text" name="message" id="chatInput" class="form-control" placeholder="Написати повідомлення..." autocomplete="off">
                 <label class="btn btn-gf-outline" style="cursor:pointer;" aria-label="Прикріпити файл" role="button">
                     <i class="fas fa-paperclip"></i>
                     <input type="file" name="attachment" id="fileInput" style="display:none;" accept="image/*,.pdf,.doc,.docx" aria-label="Вибрати файл">
                 </label>
+                <button type="button" id="voiceBtn" class="btn btn-gf-outline" aria-label="Голосове повідомлення" title="Голосове повідомлення (макс. 60с)">
+                    <i class="fas fa-microphone" id="voiceIcon"></i>
+                    <span id="voiceTimer" class="ms-1" style="display:none;font-variant-numeric:tabular-nums;"></span>
+                </button>
                 <button type="submit" class="btn btn-gf" id="sendBtn" aria-label="Надіслати"><i class="fas fa-paper-plane"></i></button>
             </form>
         </div>
@@ -98,6 +106,7 @@
 {% endblock %}
 
 {% block javascripts %}
+<script src="{{ asset('js/voice-recorder.js') }}"></script>
 <script>
 const chatBox = document.getElementById('chatMessages');
 const chatForm = document.getElementById('chatForm');
@@ -152,12 +161,17 @@ function renderMessage(msg) {
         }
     }
 
-    let attachHtml = '';
-    if (msg.attachmentUrl) {
-        if (msg.type === 'image') {
-            attachHtml = `<div class="mt-2"><img src="${msg.attachmentUrl}" style="max-width:200px;border-radius:8px;" alt="Зображення"></div>`;
-        } else {
-            attachHtml = `<div class="mt-2"><a href="${msg.attachmentUrl}" class="glow-text" target="_blank"><i class="fas fa-file me-1"></i>Файл</a></div>`;
+    let body = '';
+    if (msg.type === 'voice' && msg.attachmentUrl) {
+        body = renderVoiceBubble(msg.attachmentUrl);
+    } else {
+        body = msg.content;
+        if (msg.attachmentUrl) {
+            if (msg.type === 'image') {
+                body += `<div class="mt-2"><img src="${msg.attachmentUrl}" style="max-width:200px;border-radius:8px;" alt="Зображення"></div>`;
+            } else {
+                body += `<div class="mt-2"><a href="${msg.attachmentUrl}" class="glow-text" target="_blank"><i class="fas fa-file me-1"></i>Файл</a></div>`;
+            }
         }
     }
 
@@ -166,8 +180,7 @@ function renderMessage(msg) {
             ${!isOwn ? `<div>${avatarHtml}</div>` : ''}
             <div class="chat-bubble">
                 ${!isOwn ? `<small style="color:var(--gf-primary);font-weight:600;">${msg.senderName}</small><br>` : ''}
-                ${msg.content}
-                ${attachHtml}
+                ${body}
                 <div class="mt-1"><small style="color:var(--gf-muted);font-size:0.75rem;">${msg.createdAt}</small></div>
             </div>
         </div>`;
@@ -232,5 +245,7 @@ chatInput.addEventListener('keydown', (e) => {
         chatForm.dispatchEvent(new Event('submit'));
     }
 });
+
+initVoiceRecorder({ sendUrl: sendUrl, onMessage: renderMessage });
 </script>
 {% endblock %}

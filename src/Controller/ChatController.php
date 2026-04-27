@@ -32,7 +32,8 @@ class ChatController extends AbstractController
     public function sendLobbyMessage(Lobby $lobby, Request $request, EntityManagerInterface $em, CloudinaryService $cloudinary): Response
     {
         $content = trim($request->request->get('message', ''));
-        if (empty($content) && !$request->files->get('attachment')) {
+        $voiceFile = $request->files->get('voice');
+        if (empty($content) && !$request->files->get('attachment') && !$voiceFile) {
             if ($request->isXmlHttpRequest()) {
                 return new JsonResponse(['status' => 'error', 'message' => 'Empty'], 400);
             }
@@ -43,6 +44,15 @@ class ChatController extends AbstractController
         $message->setSender($this->getUser());
         $message->setLobby($lobby);
         $message->setContent($content ?: '');
+
+        if ($voiceFile && $voiceFile->isValid()) {
+            $voiceUrl = $this->storeVoice($voiceFile, $cloudinary);
+            if ($voiceUrl) {
+                $message->setType('voice');
+                $message->setAttachmentUrl($voiceUrl);
+                $message->setContent('[Голосове повідомлення]');
+            }
+        }
 
         $file = $request->files->get('attachment');
         if ($file && $file->isValid()) {
@@ -133,10 +143,12 @@ class ChatController extends AbstractController
     }
 
     #[Route('/messages/{id}/send', name: 'app_private_chat_send', methods: ['POST'])]
-    public function sendPrivateMessage(User $recipient, Request $request, EntityManagerInterface $em, NotificationService $notifService): Response
+    public function sendPrivateMessage(User $recipient, Request $request, EntityManagerInterface $em, NotificationService $notifService, CloudinaryService $cloudinary): Response
     {
         $content = trim($request->request->get('message', ''));
-        if (empty($content)) {
+        $voiceFile = $request->files->get('voice');
+
+        if (empty($content) && !$voiceFile) {
             if ($request->isXmlHttpRequest()) {
                 return new JsonResponse(['status' => 'error'], 400);
             }
@@ -146,13 +158,26 @@ class ChatController extends AbstractController
         $message = new ChatMessage();
         $message->setSender($this->getUser());
         $message->setRecipient($recipient);
-        $message->setContent($content);
         $message->setIsPrivate(true);
+
+        if ($voiceFile && $voiceFile->isValid()) {
+            $voiceUrl = $this->storeVoice($voiceFile, $cloudinary);
+            if (!$voiceUrl) {
+                if ($request->isXmlHttpRequest()) {
+                    return new JsonResponse(['status' => 'error', 'message' => 'Upload failed'], 500);
+                }
+                return $this->redirectToRoute('app_private_chat', ['id' => $recipient->getId()]);
+            }
+            $message->setType('voice');
+            $message->setAttachmentUrl($voiceUrl);
+            $message->setContent('[Голосове повідомлення]');
+        } else {
+            $message->setContent($content);
+        }
 
         $em->persist($message);
         $em->flush();
 
-        // Notify recipient about new private message
         $sender = $this->getUser();
         $notifService->create(
             $recipient,
@@ -214,10 +239,12 @@ class ChatController extends AbstractController
     }
 
     #[Route('/events/{id}/chat/send', name: 'app_event_chat_send', methods: ['POST'])]
-    public function sendEventMessage(GameEvent $event, Request $request, EntityManagerInterface $em): Response
+    public function sendEventMessage(GameEvent $event, Request $request, EntityManagerInterface $em, CloudinaryService $cloudinary): Response
     {
         $content = trim($request->request->get('message', ''));
-        if (empty($content)) {
+        $voiceFile = $request->files->get('voice');
+
+        if (empty($content) && !$voiceFile) {
             if ($request->isXmlHttpRequest()) {
                 return new JsonResponse(['status' => 'error'], 400);
             }
@@ -227,7 +254,21 @@ class ChatController extends AbstractController
         $message = new ChatMessage();
         $message->setSender($this->getUser());
         $message->setEvent($event);
-        $message->setContent($content);
+
+        if ($voiceFile && $voiceFile->isValid()) {
+            $voiceUrl = $this->storeVoice($voiceFile, $cloudinary);
+            if (!$voiceUrl) {
+                if ($request->isXmlHttpRequest()) {
+                    return new JsonResponse(['status' => 'error', 'message' => 'Upload failed'], 500);
+                }
+                return $this->redirectToRoute('app_event_chat', ['id' => $event->getId()]);
+            }
+            $message->setType('voice');
+            $message->setAttachmentUrl($voiceUrl);
+            $message->setContent('[Голосове повідомлення]');
+        } else {
+            $message->setContent($content);
+        }
 
         $em->persist($message);
         $em->flush();
@@ -277,5 +318,33 @@ class ChatController extends AbstractController
     private function isImage(?string $ext): bool
     {
         return in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp']);
+    }
+
+    private function storeVoice(\Symfony\Component\HttpFoundation\File\UploadedFile $file, CloudinaryService $cloudinary): ?string
+    {
+        if ($file->getSize() > 5 * 1024 * 1024) {
+            return null;
+        }
+
+        if ($cloudinary->isConfigured()) {
+            $url = $cloudinary->upload($file, 'gamefinder/voice');
+            if ($url) {
+                return $url;
+            }
+        }
+
+        $ext = $file->guessExtension() ?: 'webm';
+        $filename = uniqid('voice_') . '.' . $ext;
+        $uploadDir = $this->getParameter('kernel.project_dir') . '/public/uploads/voice';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
+        try {
+            $file->move($uploadDir, $filename);
+        } catch (\Exception $e) {
+            return null;
+        }
+
+        return '/uploads/voice/' . $filename;
     }
 }
