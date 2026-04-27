@@ -21,3 +21,8 @@ npm-debug.log
 yarn-error.log
 ###< symfony/webpack-encore-bundle ###
 
+# Mercure local binary (download separately)
+/bin/mercure/mercure.exe
+/bin/mercure/mercure.db
+/bin/mercure/*.db
+

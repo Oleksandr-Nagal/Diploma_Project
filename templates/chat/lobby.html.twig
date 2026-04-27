@@ -10,6 +10,20 @@
     </a>
 </div>
 
+<div id="voicePanel" class="card-gf p-3 mb-3" style="display:flex;flex-wrap:wrap;gap:0.75rem;align-items:center;">
+    <button id="voiceJoinBtn" class="btn btn-gf-outline btn-sm">
+        <i class="fas fa-headset me-1"></i>Увійти в голосовий канал
+    </button>
+    <button id="voiceMuteBtn" class="btn btn-gf-outline btn-sm" style="display:none;">
+        <i class="fas fa-microphone" id="voiceMuteIcon"></i>
+    </button>
+    <button id="voiceLeaveBtn" class="btn btn-gf-danger btn-sm" style="display:none;">
+        <i class="fas fa-phone-slash me-1"></i>Вийти
+    </button>
+    <span id="voiceStatus" style="color:var(--gf-muted);font-size:0.85rem;"></span>
+    <div id="voicePeers" class="d-flex gap-2 flex-wrap"></div>
+</div>
+
 <div class="card-gf p-0">
     <div class="chat-container">
         <div class="chat-messages" id="chatMessages">
@@ -108,6 +122,7 @@
 {% block javascripts %}
 <script src="{{ asset('js/voice-recorder.js') }}"></script>
 <script src="{{ asset('js/chat-attachment.js') }}"></script>
+<script src="{{ asset('js/voice-room.js') }}"></script>
 <script>
 const chatBox = document.getElementById('chatMessages');
 const chatForm = document.getElementById('chatForm');
@@ -126,7 +141,6 @@ function scrollToBottom() {
 }
 scrollToBottom();
 
-// File preview
 fileInput.addEventListener('change', () => {
     if (fileInput.files.length === 0) return;
     if (!validateFile(fileInput.files[0])) {
@@ -194,7 +208,6 @@ function renderMessage(msg) {
     scrollToBottom();
 }
 
-// Send message via AJAX
 chatForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const msg = chatInput.value.trim();
@@ -237,7 +250,6 @@ chatForm.addEventListener('submit', async (e) => {
     chatInput.focus();
 });
 
-// Poll for new messages every 2 seconds
 setInterval(async () => {
     try {
         const lastId = getLastMessageId();
@@ -249,7 +261,6 @@ setInterval(async () => {
     } catch (err) {}
 }, 2000);
 
-// Send on Enter
 chatInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
@@ -258,5 +269,78 @@ chatInput.addEventListener('keydown', (e) => {
 });
 
 initVoiceRecorder({ sendUrl: sendUrl, onMessage: renderMessage });
+
+const voiceJoinUrl = '{{ path("app_lobby_voice_join", {id: lobby.id}) }}';
+const voiceSignalUrl = '{{ path("app_lobby_voice_signal", {id: lobby.id}) }}';
+const voiceJoinBtn = document.getElementById('voiceJoinBtn');
+const voiceLeaveBtn = document.getElementById('voiceLeaveBtn');
+const voiceMuteBtn = document.getElementById('voiceMuteBtn');
+const voiceMuteIcon = document.getElementById('voiceMuteIcon');
+const voiceStatus = document.getElementById('voiceStatus');
+const voicePeers = document.getElementById('voicePeers');
+let voiceRoom = null;
+
+function renderPeerChip(id, name) {
+    const chip = document.createElement('span');
+    chip.id = `voice-peer-${id}`;
+    chip.className = 'badge';
+    chip.style.cssText = 'background:var(--gf-primary);color:#fff;padding:0.4rem 0.7rem;border-radius:12px;';
+    chip.innerHTML = `<i class="fas fa-user me-1"></i>${name}`;
+    voicePeers.appendChild(chip);
+}
+
+voiceJoinBtn.addEventListener('click', async () => {
+    voiceJoinBtn.disabled = true;
+    voiceStatus.textContent = 'Підключення...';
+    try {
+        const res = await fetch(voiceJoinUrl, {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        });
+        const config = await res.json();
+        if (config.status !== 'ok') {
+            voiceStatus.textContent = 'Помилка: ' + (config.message || 'не вдалося');
+            voiceJoinBtn.disabled = false;
+            return;
+        }
+        config.signal_url = voiceSignalUrl;
+
+        voiceRoom = new VoiceRoom(config);
+        voiceRoom.on('joined', () => {
+            voiceStatus.textContent = 'У голосовому каналі';
+            voiceJoinBtn.style.display = 'none';
+            voiceLeaveBtn.style.display = 'inline-block';
+            voiceMuteBtn.style.display = 'inline-block';
+        });
+        voiceRoom.on('peer_added', ({ id, name }) => renderPeerChip(id, name));
+        voiceRoom.on('peer_removed', ({ id }) => {
+            const chip = document.getElementById(`voice-peer-${id}`);
+            if (chip) chip.remove();
+        });
+        voiceRoom.on('mute_changed', (muted) => {
+            voiceMuteIcon.className = muted ? 'fas fa-microphone-slash' : 'fas fa-microphone';
+        });
+        voiceRoom.on('left', () => {
+            voiceStatus.textContent = '';
+            voiceJoinBtn.style.display = 'inline-block';
+            voiceJoinBtn.disabled = false;
+            voiceLeaveBtn.style.display = 'none';
+            voiceMuteBtn.style.display = 'none';
+            voicePeers.innerHTML = '';
+            voiceRoom = null;
+        });
+        voiceRoom.on('error', (msg) => { voiceStatus.textContent = 'Помилка: ' + msg; });
+
+        await voiceRoom.join();
+    } catch (err) {
+        console.error(err);
+        voiceStatus.textContent = 'Не вдалося підключитись';
+        voiceJoinBtn.disabled = false;
+    }
+});
+
+voiceLeaveBtn.addEventListener('click', () => { if (voiceRoom) voiceRoom.leave(); });
+voiceMuteBtn.addEventListener('click', () => { if (voiceRoom) voiceRoom.toggleMute(); });
+window.addEventListener('beforeunload', () => { if (voiceRoom) voiceRoom.leave(); });
 </script>
 {% endblock %}

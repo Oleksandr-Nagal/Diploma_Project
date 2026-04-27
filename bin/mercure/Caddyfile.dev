@@ -1,0 +1,29 @@
+{
+	{$GLOBAL_OPTIONS}
+}
+
+{$SERVER_NAME:localhost} {
+	log
+
+	route {
+		encode zstd gzip
+
+		mercure {
+			# Publisher JWT key
+			publisher_jwt {env.MERCURE_PUBLISHER_JWT_KEY} {env.MERCURE_PUBLISHER_JWT_ALG}
+			# Subscriber JWT key
+			subscriber_jwt {env.MERCURE_SUBSCRIBER_JWT_KEY} {env.MERCURE_SUBSCRIBER_JWT_ALG}
+			# Allow anonymous subscribers (dev only)
+			anonymous
+			# Enable CORS for dev hosts
+			cors_origins http://127.0.0.1:8000 http://localhost:8000 https://127.0.0.1:8000 https://localhost:8000
+			# Demo topic for dev
+			publish_origins *
+			# Mandatory for development
+			demo
+		}
+
+		respond /healthz 200
+		respond "Mercure Hub"
+	}
+}
