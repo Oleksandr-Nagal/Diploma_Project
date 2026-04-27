@@ -249,6 +249,10 @@
                         <ul class="dropdown-menu dropdown-menu-end" style="background:var(--gf-dropdown-bg);border-color:var(--gf-border);">
                             <li><a class="dropdown-item text-light" href="{{ path('app_profile') }}"><i class="fas fa-user me-2"></i>Профіль</a></li>
                             <li><a class="dropdown-item text-light" href="{{ path('app_profile_edit') }}"><i class="fas fa-gear me-2"></i>Налаштування</a></li>
+                            {% if is_granted('ROLE_MODERATOR') %}
+                                <li><hr class="dropdown-divider" style="border-color:var(--gf-border)"></li>
+                                <li><a class="dropdown-item" style="color:var(--gf-secondary)" href="{{ path('app_moderator') }}"><i class="fas fa-gavel me-2"></i>Модерація</a></li>
+                            {% endif %}
                             {% if is_granted('ROLE_ADMIN') %}
                                 <li><hr class="dropdown-divider" style="border-color:var(--gf-border)"></li>
                                 <li><a class="dropdown-item text-warning" href="{{ path('app_admin') }}"><i class="fas fa-shield me-2"></i>Адмінка</a></li>
