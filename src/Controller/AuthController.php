@@ -56,6 +56,11 @@ class AuthController extends AbstractController
     #[Route('/logout', name: 'app_logout')]
     public function logout(): void {}
 
+    private function isDiscordAvatar(?string $url): bool
+    {
+        return $url !== null && str_contains($url, 'cdn.discordapp.com');
+    }
+
     #[Route('/oauth/google', name: 'oauth_google_start')]
     public function googleStart(ClientRegistry $clientRegistry): Response
     {
@@ -127,6 +132,17 @@ class AuthController extends AbstractController
         $email = $data['email'] ?? null;
         $username = $data['username'] ?? 'discord_' . $discordId;
 
+        $avatarUrl = null;
+        if (!empty($data['avatar'])) {
+            $ext = str_starts_with((string) $data['avatar'], 'a_') ? 'gif' : 'png';
+            $avatarUrl = sprintf('https://cdn.discordapp.com/avatars/%s/%s.%s?size=256', $discordId, $data['avatar'], $ext);
+        } else {
+            $index = isset($data['discriminator']) && $data['discriminator'] !== '0'
+                ? ((int) $data['discriminator']) % 5
+                : (((int) $discordId >> 22) % 6);
+            $avatarUrl = sprintf('https://cdn.discordapp.com/embed/avatars/%d.png', $index);
+        }
+
         $user = $userRepo->findByDiscordId($discordId);
         if (!$user && $email) {
             $user = $userRepo->findOneBy(['email' => $email]);
@@ -137,14 +153,15 @@ class AuthController extends AbstractController
             $user->setEmail($email ?? $discordId . '@discord.local');
             $user->setUsername($username);
             $user->setDiscordId($discordId);
-            if (isset($data['avatar'])) {
-                $user->setAvatar('https://cdn.discordapp.com/avatars/' . $discordId . '/' . $data['avatar'] . '.png');
-            }
+            $user->setAvatar($avatarUrl);
             $user->setIsVerified(true);
             $em->persist($user);
             $em->flush();
         } else {
             $user->setDiscordId($discordId);
+            if (!$user->getAvatar() || $this->isDiscordAvatar($user->getAvatar())) {
+                $user->setAvatar($avatarUrl);
+            }
             $em->flush();
         }
 
