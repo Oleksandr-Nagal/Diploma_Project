@@ -3,16 +3,20 @@
 namespace App\Security;
 
 use App\Entity\User;
+use App\EventListener\AuthenticationListener;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use KnpU\OAuth2ClientBundle\Client\ClientRegistry;
 use KnpU\OAuth2ClientBundle\Security\Authenticator\OAuth2Authenticator;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
+use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
 use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
 use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
 use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPassport;
@@ -23,7 +27,8 @@ class GoogleAuthenticator extends OAuth2Authenticator
         private ClientRegistry $clientRegistry,
         private EntityManagerInterface $em,
         private RouterInterface $router,
-        private UserRepository $userRepository
+        private UserRepository $userRepository,
+        private RequestStack $requestStack
     ) {}
 
     public function supports(Request $request): ?bool
@@ -60,6 +65,10 @@ class GoogleAuthenticator extends OAuth2Authenticator
                     $this->em->flush();
                 }
 
+                if ($user->isBanned()) {
+                    throw new CustomUserMessageAuthenticationException(AuthenticationListener::buildBanMessage($user));
+                }
+
                 return $user;
             })
         );
@@ -73,6 +82,19 @@ class GoogleAuthenticator extends OAuth2Authenticator
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception): ?Response
     {
         $message = strtr($exception->getMessageKey(), $exception->getMessageData());
-        return new RedirectResponse($this->router->generate('app_login', ['error' => $message]));
+        $session = $this->requestStack->getSession();
+
+        if ($exception instanceof CustomUserMessageAuthenticationException
+            && str_contains($message, 'заблоков')) {
+            if ($session instanceof Session) {
+                $session->getFlashBag()->add('ban_message', $message);
+            }
+            return new RedirectResponse($this->router->generate('app_banned'));
+        }
+
+        if ($session instanceof Session) {
+            $session->getFlashBag()->add('error', $message);
+        }
+        return new RedirectResponse($this->router->generate('app_login'));
     }
 }

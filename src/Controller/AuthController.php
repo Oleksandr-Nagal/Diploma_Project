@@ -127,7 +127,6 @@ class AuthController extends AbstractController
         $email = $data['email'] ?? null;
         $username = $data['username'] ?? 'discord_' . $discordId;
 
-        // Find or create user
         $user = $userRepo->findByDiscordId($discordId);
         if (!$user && $email) {
             $user = $userRepo->findOneBy(['email' => $email]);
@@ -147,6 +146,11 @@ class AuthController extends AbstractController
         } else {
             $user->setDiscordId($discordId);
             $em->flush();
+        }
+
+        if ($user->isBanned()) {
+            $this->addFlash('ban_message', \App\EventListener\AuthenticationListener::buildBanMessage($user));
+            return $this->redirectToRoute('app_banned');
         }
 
         return $userAuthenticator->authenticateUser($user, $discordAuth, $request);

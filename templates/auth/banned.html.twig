@@ -1,0 +1,60 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Акаунт заблоковано{% endblock %}
+
+{% block body %}
+{% set ban_flashes = app.flashes('ban_message') %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="card-gf text-center">
+            <div class="mb-3" style="font-size:3rem;color:var(--gf-danger);">
+                <i class="fas fa-ban"></i>
+            </div>
+            <h2 class="mb-3" style="color:var(--gf-danger)">Акаунт заблоковано</h2>
+
+            {% if banned_user %}
+                <p class="mb-2" style="color:var(--gf-text)">
+                    Шановний(а), <strong>{{ banned_user.username }}</strong>, доступ до вашого акаунту обмежено адміністратором.
+                </p>
+
+                {% if banned_user.bannedUntil and banned_user.bannedUntil > date() %}
+                    <div class="alert alert-warning mt-3">
+                        <div><i class="fas fa-clock me-1"></i> Блокування діє до:
+                            <strong>{{ banned_user.bannedUntil|date('d.m.Y H:i') }}</strong>
+                        </div>
+                        {% if banned_user.banTimeLeft %}
+                            <div class="mt-2">Залишилось: <strong>{{ banned_user.banTimeLeft }}</strong></div>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-danger mt-3">
+                        <i class="fas fa-infinity me-1"></i> Блокування діє без обмеження в часі.
+                    </div>
+                {% endif %}
+            {% elseif ban_flashes is not empty %}
+                <div class="alert alert-danger mt-3">
+                    <i class="fas fa-circle-info me-1"></i> {{ ban_flashes|first }}
+                </div>
+            {% else %}
+                <p style="color:var(--gf-text)">Ваш акаунт заблоковано адміністратором.</p>
+            {% endif %}
+
+            <p class="mt-3" style="color:var(--gf-muted)">
+                Якщо ви вважаєте, що блокування є помилковим, зв'яжіться з підтримкою.
+            </p>
+
+            <div class="d-flex gap-2 justify-content-center mt-4">
+                {% if app.user %}
+                    <a href="{{ path('app_logout') }}" class="btn btn-gf-outline">
+                        <i class="fas fa-sign-out me-1"></i> Вийти
+                    </a>
+                {% else %}
+                    <a href="{{ path('app_login') }}" class="btn btn-gf-outline">
+                        <i class="fas fa-arrow-left me-1"></i> На сторінку входу
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

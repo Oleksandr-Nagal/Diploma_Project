@@ -9,6 +9,12 @@
             <h2 class="mb-1"><i class="fas fa-gamepad me-2 glow-text"></i></h2>
             <h2 class="glow-text mb-4">Вхід до GameFinder</h2>
 
+            {% for label, messages in app.flashes(['error', 'success']) %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ label == 'error' ? 'danger' : 'success' }}">{{ message }}</div>
+                {% endfor %}
+            {% endfor %}
+
             {% if error %}
                 <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
             {% endif %}
