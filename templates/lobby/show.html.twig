@@ -69,26 +69,16 @@
                 {% endif %}
 
                 {% if not isOwner %}
-                    <button class="btn btn-sm" style="color:var(--gf-muted);background:transparent;border:1px solid var(--gf-border);border-radius:8px;" type="button" data-bs-toggle="modal" data-bs-target="#reportLobbyOwner">
+                    <button class="btn btn-sm" style="color:var(--gf-danger);background:transparent;border:1px solid var(--gf-danger);border-radius:8px;font-weight:600;" type="button" data-bs-toggle="modal" data-bs-target="#reportLobbyOwner">
                         <i class="fas fa-flag me-1"></i> Скарга
                     </button>
                 {% endif %}
             </div>
         </div>
 
-        {# Chat preview #}
-        {% if isMember or isOwner %}
-        <div class="card-gf">
-            <h5><i class="fas fa-comments me-2" style="color:var(--gf-primary)"></i>Чат кімнати</h5>
-            <p style="color:var(--gf-muted)">
-                <a href="{{ path('app_lobby_chat', {id: lobby.id}) }}" class="text-decoration-none glow-text">Відкрити повний чат</a>
-            </p>
-        </div>
-        {% endif %}
     </div>
 
     <div class="col-lg-4">
-        {# Members #}
         <div class="card-gf mb-4">
             <h5 class="mb-3"><i class="fas fa-users me-2" style="color:var(--gf-secondary)"></i>Учасники</h5>
 
@@ -110,7 +100,6 @@
             {% endfor %}
         </div>
 
-        {# Pending requests (for owner) #}
         {% if isOwner %}
             {% set pendingMembers = lobby.members|filter(m => m.status == 'pending') %}
             {% if pendingMembers|length > 0 %}
@@ -136,7 +125,6 @@
             {% endif %}
         {% endif %}
 
-        {# Owner info #}
         <div class="card-gf mt-4">
             <h5 class="mb-3">Власник лобі</h5>
             <div class="d-flex align-items-center gap-3">
