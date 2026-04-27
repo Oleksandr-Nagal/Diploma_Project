@@ -2,6 +2,27 @@
 
 {% block title %}{{ user.username }}{% endblock %}
 
+{% block stylesheets %}
+    {% set theme_css = profile_theme_css(user.profileTheme) %}
+    {% if theme_css %}
+    <style>
+        main.container {
+            {{ theme_css|raw }}
+            background: var(--gf-darker);
+            border-radius: 16px;
+            padding: 1.5rem 1rem;
+            color: var(--gf-text);
+        }
+        main.container .form-control,
+        main.container .form-select {
+            background: var(--gf-input-bg);
+            border-color: var(--gf-input-border);
+            color: var(--gf-text);
+        }
+    </style>
+    {% endif %}
+{% endblock %}
+
 {% block body %}
 <div class="row">
     <div class="col-lg-4">

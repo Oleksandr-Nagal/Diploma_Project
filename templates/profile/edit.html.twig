@@ -50,6 +50,13 @@
                         {{ form_label(field) }}
                         {{ form_widget(field, {'attr': {'class': field.vars.block_prefixes[1] == 'textarea' ? 'form-control' : (field.vars.block_prefixes[1] == 'choice' ? 'form-select' : 'form-control')}}) }}
                         {{ form_errors(field) }}
+                        {% if field.vars.name == 'profileTheme' %}
+                            <div class="d-flex gap-2 flex-wrap mt-2">
+                                {% for key, data in profile_themes() %}
+                                    <div title="{{ data.label }}" style="width:44px;height:28px;border-radius:8px;border:2px solid {{ app.user.profileTheme == key ? 'var(--gf-success)' : 'var(--gf-border)' }};background:linear-gradient(135deg,{{ data.preview[0] }},{{ data.preview[1] }});"></div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
                     </div>
                     {% endif %}
                 {% endfor %}

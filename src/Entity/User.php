@@ -78,6 +78,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $bannedUntil = null;
 
+    #[ORM\Column(length: 30, nullable: true)]
+    private ?string $profileTheme = null;
+
     #[ORM\Column(type: Types::FLOAT, options: ['default' => 0])]
     private float $rating = 0;
 
@@ -245,6 +248,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         if ($diff->h > 0) return $diff->h . 'г ' . $diff->i . 'хв';
         return $diff->i . 'хв';
     }
+
+    public function getProfileTheme(): ?string { return $this->profileTheme; }
+    public function setProfileTheme(?string $profileTheme): static { $this->profileTheme = $profileTheme; return $this; }
 
     public function getRating(): float { return $this->rating; }
     public function setRating(float $rating): static { $this->rating = $rating; return $this; }

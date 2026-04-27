@@ -3,6 +3,7 @@
 namespace App\Form;
 
 use App\Entity\User;
+use App\Service\ProfileThemeService;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
@@ -46,6 +47,13 @@ class ProfileType extends AbstractType
                 'required' => false,
                 'attr' => ['placeholder' => 'https://steamcommunity.com/id/your_name або https://steamcommunity.com/profiles/76561198...'],
                 'help' => 'Вставте посилання на ваш Steam профіль — ID визначиться автоматично',
+            ])
+            ->add('profileTheme', ChoiceType::class, [
+                'label' => 'Тема публічного профілю',
+                'required' => false,
+                'choices' => ProfileThemeService::getChoices(),
+                'placeholder' => '— Типова —',
+                'help' => 'Відображатиметься відвідувачам вашої сторінки.',
             ]);
     }
 
