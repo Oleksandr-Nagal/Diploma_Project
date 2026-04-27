@@ -1,0 +1,94 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Панель модератора{% endblock %}
+
+{% block body %}
+<div class="page-header">
+    <h1><i class="fas fa-gavel me-2" style="color:var(--gf-warning)"></i>Панель модератора</h1>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card-gf text-center">
+            <div class="stat-value">{{ pendingCount }}</div>
+            <div class="stat-label">Скарг очікують</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card-gf text-center">
+            <div class="stat-value">{{ totalReports }}</div>
+            <div class="stat-label">Всього скарг</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card-gf text-center">
+            <div class="stat-value">{{ totalUsers }}</div>
+            <div class="stat-label">Користувачів</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <a href="{{ path('app_moderator_reports') }}" class="card-gf d-block text-decoration-none">
+            <h4 style="color:var(--gf-text)"><i class="fas fa-flag me-2" style="color:var(--gf-danger)"></i>Скарги</h4>
+            <p style="color:var(--gf-muted)">Перегляд та вирішення скарг користувачів</p>
+            {% if pendingCount > 0 %}
+                <span class="badge-gf badge-gf-danger">{{ pendingCount }} очікують</span>
+            {% endif %}
+        </a>
+    </div>
+    <div class="col-md-4">
+        <a href="{{ path('app_moderator_users') }}" class="card-gf d-block text-decoration-none">
+            <h4 style="color:var(--gf-text)"><i class="fas fa-users me-2" style="color:var(--gf-primary)"></i>Користувачі</h4>
+            <p style="color:var(--gf-muted)">Блокування та розблокування користувачів</p>
+        </a>
+    </div>
+    <div class="col-md-4">
+        <a href="{{ path('app_lobbies') }}" class="card-gf d-block text-decoration-none">
+            <h4 style="color:var(--gf-text)"><i class="fas fa-door-open me-2" style="color:var(--gf-secondary)"></i>Лобі</h4>
+            <p style="color:var(--gf-muted)">Перегляд та закриття лобі</p>
+        </a>
+    </div>
+</div>
+
+{% if recentActions|length > 0 %}
+<div class="card-gf">
+    <h4 class="mb-3"><i class="fas fa-history me-2" style="color:var(--gf-secondary)"></i>Останні дії</h4>
+    <div class="table-responsive">
+        <table class="table table-borderless mb-0">
+            <thead>
+                <tr>
+                    <th>Дата</th>
+                    <th>Скарга</th>
+                    <th>Статус</th>
+                    <th>Модератор</th>
+                    <th>Примітка</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for action in recentActions %}
+                <tr>
+                    <td style="color:var(--gf-muted)">{{ action.resolvedAt ? action.resolvedAt|date('d.m.Y H:i') : '-' }}</td>
+                    <td>
+                        {% if action.reportedUser %}
+                            <i class="fas fa-user me-1" style="color:var(--gf-primary)"></i>{{ action.reportedUser.username }}
+                        {% elseif action.reportedMessage %}
+                            <i class="fas fa-comment me-1" style="color:var(--gf-primary)"></i>Повідомлення #{{ action.reportedMessage.id }}
+                        {% else %}
+                            Скарга #{{ action.id }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge-gf badge-gf-success">Вирішено</span>
+                    </td>
+                    <td>{{ action.resolvedBy ? action.resolvedBy.username : '-' }}</td>
+                    <td style="color:var(--gf-muted)">{{ action.moderatorNote|default('-')|slice(0, 50) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
