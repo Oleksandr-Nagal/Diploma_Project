@@ -1,0 +1,112 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Користувачі - Адмін{% endblock %}
+
+{% block body %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <h1><i class="fas fa-users me-2" style="color:var(--gf-primary)"></i>Користувачі</h1>
+    <a href="{{ path('app_admin') }}" class="btn btn-gf-outline btn-sm"><i class="fas fa-arrow-left me-1"></i> Назад</a>
+</div>
+
+<div class="card-gf">
+    <div class="table-responsive">
+        <table class="table table-borderless mb-0">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Нікнейм</th>
+                    <th>Email</th>
+                    <th>Роль</th>
+                    <th>Рейтинг</th>
+                    <th>Статус</th>
+                    <th>Дії</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                {% set isAdmin = 'ROLE_ADMIN' in user.roles %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td>
+                        <a href="{{ path('app_profile_public', {id: user.id}) }}" class="text-decoration-none" style="color:var(--gf-text)">
+                            {{ user.username }}
+                        </a>
+                        {% if user.premium %}<span class="premium-badge ms-1">PRO</span>{% endif %}
+                    </td>
+                    <td style="color:var(--gf-muted)">{{ user.email }}</td>
+                    <td>
+                        <form action="{{ path('app_admin_user_role', {id: user.id}) }}" method="post" class="d-inline">
+                            <select name="role" class="form-select form-select-sm" style="width:auto;display:inline-block;" onchange="this.form.submit()">
+                                <option value="ROLE_USER" {{ 'ROLE_USER' in user.roles and 'ROLE_MODERATOR' not in user.roles and 'ROLE_ADMIN' not in user.roles ? 'selected' : '' }}>Користувач</option>
+                                <option value="ROLE_MODERATOR" {{ 'ROLE_MODERATOR' in user.roles ? 'selected' : '' }}>Модератор</option>
+                                <option value="ROLE_ADMIN" {{ 'ROLE_ADMIN' in user.roles ? 'selected' : '' }}>Адмін</option>
+                            </select>
+                        </form>
+                    </td>
+                    <td>{{ user.rating|round(0) }}%</td>
+                    <td>
+                        {% if user.isBanned %}
+                            <span class="badge-gf badge-gf-danger">Заблоковано</span>
+                            {% if user.bannedUntil %}
+                                <div class="small mt-1" style="color:var(--gf-muted)">
+                                    <i class="fas fa-clock me-1"></i>до {{ user.bannedUntil|date('d.m.Y H:i') }}
+                                    {% if user.banTimeLeft %}
+                                        <br>залишилось {{ user.banTimeLeft }}
+                                    {% endif %}
+                                </div>
+                            {% else %}
+                                <div class="small mt-1" style="color:var(--gf-muted)">
+                                    <i class="fas fa-infinity me-1"></i>безстроково
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            <span class="badge-gf badge-gf-success">Активний</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if isAdmin %}
+                            <span style="color:var(--gf-muted)">—</span>
+                        {% elseif user.isBanned %}
+                            <form action="{{ path('app_admin_user_ban', {id: user.id}) }}" method="post" class="d-inline">
+                                <button class="btn btn-gf-success btn-sm">Розблокувати</button>
+                            </form>
+                        {% else %}
+                            <button type="button" class="btn btn-gf-danger btn-sm" data-bs-toggle="modal" data-bs-target="#banModal{{ user.id }}">
+                                Заблокувати
+                            </button>
+                            <div class="modal fade" id="banModal{{ user.id }}" tabindex="-1">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content" style="background:var(--gf-card);border:1px solid var(--gf-border);color:var(--gf-text);">
+                                        <form action="{{ path('app_admin_user_ban', {id: user.id}) }}" method="post">
+                                            <div class="modal-header" style="border-color:var(--gf-border)">
+                                                <h5 class="modal-title">Заблокувати {{ user.username }}</h5>
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body text-start">
+                                                <label class="form-label">Тривалість блокування</label>
+                                                <select name="duration" class="form-select">
+                                                    <option value="1">1 година</option>
+                                                    <option value="24">1 день</option>
+                                                    <option value="72">3 дні</option>
+                                                    <option value="168">1 тиждень</option>
+                                                    <option value="720">1 місяць</option>
+                                                    <option value="0">Безстроково</option>
+                                                </select>
+                                            </div>
+                                            <div class="modal-footer" style="border-color:var(--gf-border)">
+                                                <button type="button" class="btn btn-gf-outline btn-sm" data-bs-dismiss="modal">Скасувати</button>
+                                                <button type="submit" class="btn btn-gf-danger btn-sm">Заблокувати</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

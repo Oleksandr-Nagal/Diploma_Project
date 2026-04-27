@@ -1,0 +1,205 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Ігри - Адмін{% endblock %}
+
+{% block body %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <h1><i class="fas fa-gamepad me-2" style="color:var(--gf-secondary)"></i>Управління іграми</h1>
+    <a href="{{ path('app_admin') }}" class="btn btn-gf-outline btn-sm"><i class="fas fa-arrow-left me-1"></i> Назад</a>
+</div>
+
+{% for label, messages in app.flashes(['success', 'error', 'info']) %}
+    {% for message in messages %}
+        <div class="alert alert-{{ label == 'error' ? 'danger' : label }}">{{ message }}</div>
+    {% endfor %}
+{% endfor %}
+
+<div class="card-gf mb-4">
+    <h5 class="mb-3"><i class="fab fa-steam me-2" style="color:#66c0f4"></i>Пошук ігор у Steam</h5>
+    <div class="row g-3">
+        <div class="col-md-8">
+            <input type="text" id="steamSearch" class="form-control" placeholder="Введіть назву гри (наприклад: Counter-Strike, Elden Ring...)" autocomplete="off">
+        </div>
+        <div class="col-md-4">
+            <form action="{{ path('app_admin_steam_import') }}" method="post" class="d-inline">
+                <button class="btn btn-gf w-100"><i class="fas fa-download me-1"></i> Імпорт топ-ігор зі Steam</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="steamResults" class="mt-3" style="display:none;">
+        <div class="row g-2" id="steamResultsList"></div>
+    </div>
+</div>
+
+<div class="card-gf mb-4">
+    <h5 class="mb-3"><i class="fas fa-plus-circle me-2" style="color:var(--gf-success)"></i>Додати гру вручну</h5>
+    <form action="{{ path('app_admin_game_add') }}" method="post">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Назва</label>
+                <input type="text" name="name" class="form-control" required placeholder="CS2">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Жанр</label>
+                <select name="genre" class="form-select" required>
+                    <option value="FPS">FPS</option>
+                    <option value="MOBA">MOBA</option>
+                    <option value="RPG">RPG</option>
+                    <option value="MMO">MMO</option>
+                    <option value="Battle Royale">Battle Royale</option>
+                    <option value="Strategy">Стратегія</option>
+                    <option value="Survival">Виживання</option>
+                    <option value="Sports">Спорт</option>
+                    <option value="Co-op">Кооператив</option>
+                    <option value="Fighting">Файтинг</option>
+                    <option value="Racing">Гонки</option>
+                    <option value="Simulation">Симулятор</option>
+                    <option value="Other">Інше</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Макс. гравців</label>
+                <input type="number" name="maxPlayers" class="form-control" value="10">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Steam App ID</label>
+                <input type="number" name="steamAppId" class="form-control" placeholder="730">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Опис</label>
+                <input type="text" name="description" class="form-control" placeholder="Короткий опис гри">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">URL зображення</label>
+                <input type="url" name="imageUrl" class="form-control" placeholder="https://...">
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-gf w-100"><i class="fas fa-plus me-1"></i> Додати</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="card-gf">
+    <h5 class="mb-3">Каталог ігор ({{ games|length }})</h5>
+    <div class="table-responsive">
+        <table class="table table-borderless mb-0">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Назва</th>
+                    <th>Жанр</th>
+                    <th>Макс. гравців</th>
+                    <th>Steam ID</th>
+                    <th>Статус</th>
+                    <th>Дії</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for game in games %}
+                <tr>
+                    <td style="width:48px;">
+                        {% if game.imageUrl %}
+                            <img src="{{ game.imageUrl }}" style="width:40px;height:20px;object-fit:cover;border-radius:4px;" alt="{{ game.name }}">
+                        {% endif %}
+                    </td>
+                    <td><strong>{{ game.name }}</strong></td>
+                    <td><span class="badge-gf">{{ game.genre }}</span></td>
+                    <td>{{ game.maxPlayers ?? '-' }}</td>
+                    <td>{{ game.steamAppId ?? '-' }}</td>
+                    <td>
+                        {% if game.isActive %}
+                            <span class="badge-gf badge-gf-success">Активна</span>
+                        {% else %}
+                            <span class="badge-gf badge-gf-danger">Неактивна</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-gf-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteGameModal{{ game.id }}" title="Видалити гру">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        <div class="modal fade" id="deleteGameModal{{ game.id }}" tabindex="-1">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content" style="background:var(--gf-card);border:1px solid var(--gf-border);color:var(--gf-text);">
+                                    <form action="{{ path('app_admin_game_delete', {id: game.id}) }}" method="post">
+                                        <div class="modal-header" style="border-color:var(--gf-border)">
+                                            <h5 class="modal-title"><i class="fas fa-triangle-exclamation me-2" style="color:var(--gf-danger)"></i>Видалити гру?</h5>
+                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body text-start">
+                                            Ви дійсно хочете видалити гру <strong>{{ game.name }}</strong>?
+                                            <div class="mt-2 small" style="color:var(--gf-muted)">
+                                                Разом із грою будуть видалені прив'язані досягнення. Якщо до гри прив'язані лобі або події — видалення буде заблоковано.
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer" style="border-color:var(--gf-border)">
+                                            <button type="button" class="btn btn-gf-outline btn-sm" data-bs-dismiss="modal">Скасувати</button>
+                                            <button type="submit" class="btn btn-gf-danger btn-sm"><i class="fas fa-trash me-1"></i>Видалити</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center" style="color:var(--gf-muted)">Ігри не додані</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+const searchInput = document.getElementById('steamSearch');
+const resultsDiv = document.getElementById('steamResults');
+const resultsList = document.getElementById('steamResultsList');
+let searchTimeout;
+
+searchInput.addEventListener('input', () => {
+    clearTimeout(searchTimeout);
+    const q = searchInput.value.trim();
+    if (q.length < 2) {
+        resultsDiv.style.display = 'none';
+        return;
+    }
+
+    searchTimeout = setTimeout(async () => {
+        try {
+            const res = await fetch(`{{ path('app_admin_steam_search') }}?q=${encodeURIComponent(q)}`);
+            const games = await res.json();
+
+            if (games.length === 0) {
+                resultsList.innerHTML = '<div class="col-12"><p style="color:var(--gf-muted)">Нічого не знайдено</p></div>';
+            } else {
+                resultsList.innerHTML = games.map(g => `
+                    <div class="col-md-4 col-lg-3">
+                        <div class="p-2" style="background:var(--gf-dark);border-radius:10px;">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                ${g.image ? `<img src="${g.image}" style="width:40px;height:20px;object-fit:cover;border-radius:4px;" alt="">` : ''}
+                                <strong style="font-size:0.85rem;color:var(--gf-text);">${g.name}</strong>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small style="color:var(--gf-muted)">ID: ${g.appId}</small>
+                                <form action="/admin/games/steam-add/${g.appId}" method="post" style="margin:0;">
+                                    <button class="btn btn-gf btn-sm"><i class="fas fa-plus me-1"></i>Додати</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            resultsDiv.style.display = 'block';
+        } catch (err) {
+            console.error(err);
+        }
+    }, 500);
+});
+</script>
+{% endblock %}
