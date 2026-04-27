@@ -107,6 +107,7 @@
 
 {% block javascripts %}
 <script src="{{ asset('js/voice-recorder.js') }}"></script>
+<script src="{{ asset('js/chat-attachment.js') }}"></script>
 <script>
 const chatBox = document.getElementById('chatMessages');
 const chatForm = document.getElementById('chatForm');
@@ -127,10 +128,14 @@ scrollToBottom();
 
 // File preview
 fileInput.addEventListener('change', () => {
-    if (fileInput.files.length > 0) {
-        fileName.textContent = fileInput.files[0].name;
-        filePreview.style.display = 'block';
+    if (fileInput.files.length === 0) return;
+    if (!validateFile(fileInput.files[0])) {
+        fileInput.value = '';
+        filePreview.style.display = 'none';
+        return;
     }
+    fileName.textContent = fileInput.files[0].name;
+    filePreview.style.display = 'block';
 });
 
 fileClear.addEventListener('click', () => {
@@ -192,13 +197,18 @@ function renderMessage(msg) {
 // Send message via AJAX
 chatForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const formData = new FormData(chatForm);
     const msg = chatInput.value.trim();
     const hasFile = fileInput.files.length > 0;
 
     if (!msg && !hasFile) return;
 
-    // Disable send button during upload
+    if (hasFile && !validateFile(fileInput.files[0])) {
+        fileInput.value = '';
+        filePreview.style.display = 'none';
+        return;
+    }
+
+    const formData = new FormData(chatForm);
     sendBtn.disabled = true;
     sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
@@ -214,12 +224,13 @@ chatForm.addEventListener('submit', async (e) => {
         const data = await res.json();
         if (data.message) {
             renderMessage(data.message);
+        } else if (data.status === 'error') {
+            alert(data.message || 'Не вдалося надіслати повідомлення');
         }
     } catch (err) {
         console.error('Send error:', err);
     }
 
-    // Reset
     sendBtn.disabled = false;
     sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
     fileInput.value = '';

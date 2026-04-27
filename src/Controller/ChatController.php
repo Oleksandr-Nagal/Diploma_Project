@@ -33,7 +33,8 @@ class ChatController extends AbstractController
     {
         $content = trim($request->request->get('message', ''));
         $voiceFile = $request->files->get('voice');
-        if (empty($content) && !$request->files->get('attachment') && !$voiceFile) {
+        $attachment = $request->files->get('attachment');
+        if (empty($content) && !$attachment && !$voiceFile) {
             if ($request->isXmlHttpRequest()) {
                 return new JsonResponse(['status' => 'error', 'message' => 'Empty'], 400);
             }
@@ -54,27 +55,15 @@ class ChatController extends AbstractController
             }
         }
 
-        $file = $request->files->get('attachment');
-        if ($file && $file->isValid()) {
-            $ext = $file->guessExtension() ?? 'bin';
-            $url = $cloudinary->isConfigured() ? $cloudinary->upload($file, 'gamefinder/chat') : null;
-
-            if (!$url) {
-                // Fallback to local upload
-                $filename = uniqid() . '.' . $ext;
-                $uploadDir = $this->getParameter('kernel.project_dir') . '/public/uploads/chat';
-                if (!is_dir($uploadDir)) {
-                    mkdir($uploadDir, 0777, true);
+        if ($attachment && $attachment->isValid()) {
+            $error = $this->validateAttachment($attachment);
+            if ($error) {
+                if ($request->isXmlHttpRequest()) {
+                    return new JsonResponse(['status' => 'error', 'message' => $error], 400);
                 }
-                $file->move($uploadDir, $filename);
-                $url = '/uploads/chat/' . $filename;
+                return $this->redirect($request->headers->get('referer') ?? '/');
             }
-
-            $message->setAttachmentUrl($url);
-            $message->setType($this->isImage($ext) ? 'image' : 'file');
-            if (empty($content)) {
-                $message->setContent($this->isImage($ext) ? '[Зображення]' : '[Файл]');
-            }
+            $this->applyAttachment($message, $attachment, $cloudinary, $content);
         }
 
         $em->persist($message);
@@ -147,8 +136,9 @@ class ChatController extends AbstractController
     {
         $content = trim($request->request->get('message', ''));
         $voiceFile = $request->files->get('voice');
+        $attachment = $request->files->get('attachment');
 
-        if (empty($content) && !$voiceFile) {
+        if (empty($content) && !$voiceFile && !$attachment) {
             if ($request->isXmlHttpRequest()) {
                 return new JsonResponse(['status' => 'error'], 400);
             }
@@ -159,6 +149,7 @@ class ChatController extends AbstractController
         $message->setSender($this->getUser());
         $message->setRecipient($recipient);
         $message->setIsPrivate(true);
+        $message->setContent($content);
 
         if ($voiceFile && $voiceFile->isValid()) {
             $voiceUrl = $this->storeVoice($voiceFile, $cloudinary);
@@ -171,8 +162,17 @@ class ChatController extends AbstractController
             $message->setType('voice');
             $message->setAttachmentUrl($voiceUrl);
             $message->setContent('[Голосове повідомлення]');
-        } else {
-            $message->setContent($content);
+        }
+
+        if ($attachment && $attachment->isValid()) {
+            $error = $this->validateAttachment($attachment);
+            if ($error) {
+                if ($request->isXmlHttpRequest()) {
+                    return new JsonResponse(['status' => 'error', 'message' => $error], 400);
+                }
+                return $this->redirect($request->headers->get('referer') ?? '/');
+            }
+            $this->applyAttachment($message, $attachment, $cloudinary, $content);
         }
 
         $em->persist($message);
@@ -243,8 +243,9 @@ class ChatController extends AbstractController
     {
         $content = trim($request->request->get('message', ''));
         $voiceFile = $request->files->get('voice');
+        $attachment = $request->files->get('attachment');
 
-        if (empty($content) && !$voiceFile) {
+        if (empty($content) && !$voiceFile && !$attachment) {
             if ($request->isXmlHttpRequest()) {
                 return new JsonResponse(['status' => 'error'], 400);
             }
@@ -254,6 +255,7 @@ class ChatController extends AbstractController
         $message = new ChatMessage();
         $message->setSender($this->getUser());
         $message->setEvent($event);
+        $message->setContent($content);
 
         if ($voiceFile && $voiceFile->isValid()) {
             $voiceUrl = $this->storeVoice($voiceFile, $cloudinary);
@@ -266,8 +268,17 @@ class ChatController extends AbstractController
             $message->setType('voice');
             $message->setAttachmentUrl($voiceUrl);
             $message->setContent('[Голосове повідомлення]');
-        } else {
-            $message->setContent($content);
+        }
+
+        if ($attachment && $attachment->isValid()) {
+            $error = $this->validateAttachment($attachment);
+            if ($error) {
+                if ($request->isXmlHttpRequest()) {
+                    return new JsonResponse(['status' => 'error', 'message' => $error], 400);
+                }
+                return $this->redirect($request->headers->get('referer') ?? '/');
+            }
+            $this->applyAttachment($message, $attachment, $cloudinary, $content);
         }
 
         $em->persist($message);
@@ -318,6 +329,44 @@ class ChatController extends AbstractController
     private function isImage(?string $ext): bool
     {
         return in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp']);
+    }
+
+    private const MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024;
+    private const ALLOWED_ATTACHMENT_EXT = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf', 'doc', 'docx'];
+
+    private function validateAttachment(\Symfony\Component\HttpFoundation\File\UploadedFile $file): ?string
+    {
+        if ($file->getSize() > self::MAX_ATTACHMENT_BYTES) {
+            return 'Файл занадто великий. Максимум 5 МБ.';
+        }
+        $ext = strtolower($file->guessExtension() ?? '');
+        if (!in_array($ext, self::ALLOWED_ATTACHMENT_EXT, true)) {
+            return 'Дозволено лише зображення (JPG, PNG, GIF, WEBP) або документи (PDF, DOC, DOCX).';
+        }
+        return null;
+    }
+
+    private function applyAttachment(ChatMessage $message, \Symfony\Component\HttpFoundation\File\UploadedFile $file, CloudinaryService $cloudinary, string $content): void
+    {
+        $ext = $file->guessExtension() ?? 'bin';
+        $url = $cloudinary->isConfigured() ? $cloudinary->upload($file, 'gamefinder/chat') : null;
+
+        if (!$url) {
+            $filename = uniqid() . '.' . $ext;
+            $uploadDir = $this->getParameter('kernel.project_dir') . '/public/uploads/chat';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0777, true);
+            }
+            $file->move($uploadDir, $filename);
+            $url = '/uploads/chat/' . $filename;
+        }
+
+        $isImage = $this->isImage($ext);
+        $message->setAttachmentUrl($url);
+        $message->setType($isImage ? 'image' : 'file');
+        if (empty($content)) {
+            $message->setContent($isImage ? '[Зображення]' : '[Файл]');
+        }
     }
 
     private function storeVoice(\Symfony\Component\HttpFoundation\File\UploadedFile $file, CloudinaryService $cloudinary): ?string
