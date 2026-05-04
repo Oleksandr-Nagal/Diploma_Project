@@ -31,7 +31,7 @@
                         {% if msg.attachmentUrl %}
                             <div class="mt-2">
                                 {% if msg.type == 'image' %}
-                                    <img src="{{ msg.attachmentUrl }}" style="max-width:200px;border-radius:8px;" alt="Зображення">
+                                    <img src="{{ msg.attachmentUrl }}" style="max-width:200px;border-radius:8px;cursor:zoom-in;" alt="Зображення">
                                 {% else %}
                                     <a href="{{ msg.attachmentUrl }}" class="glow-text" target="_blank"><i class="fas fa-file me-1"></i>Файл</a>
                                 {% endif %}
@@ -85,7 +85,7 @@
                 <input type="text" name="message" id="chatInput" class="form-control" placeholder="Написати повідомлення..." autocomplete="off">
                 <label class="btn btn-gf-outline" style="cursor:pointer;" aria-label="Прикріпити файл" role="button">
                     <i class="fas fa-paperclip"></i>
-                    <input type="file" name="attachment" id="fileInput" style="display:none;" accept="image/*,.pdf,.doc,.docx" aria-label="Вибрати файл">
+                    <input type="file" name="attachment" id="fileInput" style="display:none;" accept="image/*,.doc,.docx" aria-label="Вибрати файл">
                 </label>
                 <button type="button" id="voiceBtn" class="btn btn-gf-outline" aria-label="Голосове повідомлення" title="Голосове повідомлення (макс. 60с)">
                     <i class="fas fa-microphone" id="voiceIcon"></i>
@@ -108,6 +108,7 @@
 {% block javascripts %}
 <script src="{{ asset('js/voice-recorder.js') }}"></script>
 <script src="{{ asset('js/chat-attachment.js') }}"></script>
+<script src="{{ asset('js/chat-lightbox.js') }}"></script>
 <script>
 const chatBox = document.getElementById('chatMessages');
 const chatForm = document.getElementById('chatForm');
@@ -144,7 +145,7 @@ function renderMessage(msg) {
         body = msg.content;
         if (msg.attachmentUrl) {
             if (msg.type === 'image') {
-                body += `<div class="mt-2"><img src="${msg.attachmentUrl}" style="max-width:200px;border-radius:8px;" alt="Зображення"></div>`;
+                body += `<div class="mt-2"><img src="${msg.attachmentUrl}" style="max-width:200px;border-radius:8px;cursor:zoom-in;" alt="Зображення"></div>`;
             } else {
                 body += `<div class="mt-2"><a href="${msg.attachmentUrl}" class="glow-text" target="_blank"><i class="fas fa-file me-1"></i>Файл</a></div>`;
             }
