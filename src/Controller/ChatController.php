@@ -332,23 +332,32 @@ class ChatController extends AbstractController
     }
 
     private const MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024;
-    private const ALLOWED_ATTACHMENT_EXT = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf', 'doc', 'docx'];
+    private const ALLOWED_ATTACHMENT_EXT = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'doc', 'docx'];
+
+    private function resolveExtension(\Symfony\Component\HttpFoundation\File\UploadedFile $file): string
+    {
+        $clientExt = strtolower($file->getClientOriginalExtension());
+        if (in_array($clientExt, self::ALLOWED_ATTACHMENT_EXT, true)) {
+            return $clientExt;
+        }
+        return strtolower($file->guessExtension() ?? '');
+    }
 
     private function validateAttachment(\Symfony\Component\HttpFoundation\File\UploadedFile $file): ?string
     {
         if ($file->getSize() > self::MAX_ATTACHMENT_BYTES) {
             return 'Файл занадто великий. Максимум 5 МБ.';
         }
-        $ext = strtolower($file->guessExtension() ?? '');
+        $ext = $this->resolveExtension($file);
         if (!in_array($ext, self::ALLOWED_ATTACHMENT_EXT, true)) {
-            return 'Дозволено лише зображення (JPG, PNG, GIF, WEBP) або документи (PDF, DOC, DOCX).';
+            return 'Дозволено лише зображення (JPG, PNG, GIF, WEBP) або документи (DOC, DOCX).';
         }
         return null;
     }
 
     private function applyAttachment(ChatMessage $message, \Symfony\Component\HttpFoundation\File\UploadedFile $file, CloudinaryService $cloudinary, string $content): void
     {
-        $ext = $file->guessExtension() ?? 'bin';
+        $ext = $this->resolveExtension($file) ?: 'bin';
         $url = $cloudinary->isConfigured() ? $cloudinary->upload($file, 'gamefinder/chat') : null;
 
         if (!$url) {
