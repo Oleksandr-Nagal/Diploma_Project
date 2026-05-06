@@ -34,7 +34,7 @@
                         {% if msg.attachmentUrl %}
                             <div class="mt-2">
                                 {% if msg.type == 'image' %}
-                                    <img src="{{ msg.attachmentUrl }}" style="max-width:200px;border-radius:8px;" alt="Зображення">
+                                    <img src="{{ msg.attachmentUrl }}" style="max-width:200px;border-radius:8px;cursor:zoom-in;" alt="Зображення">
                                 {% else %}
                                     <a href="{{ msg.attachmentUrl }}" class="glow-text" target="_blank"><i class="fas fa-file me-1"></i>Файл</a>
                                 {% endif %}
@@ -111,6 +111,7 @@
 {% block javascripts %}
 <script src="{{ asset('js/voice-recorder.js') }}"></script>
 <script src="{{ asset('js/chat-attachment.js') }}"></script>
+<script src="{{ asset('js/chat-lightbox.js') }}"></script>
 <script>
 const chatBox = document.getElementById('chatMessages');
 const chatForm = document.getElementById('chatForm');
@@ -147,7 +148,7 @@ function renderMessage(msg) {
         body = msg.content;
         if (msg.attachmentUrl) {
             if (msg.type === 'image') {
-                body += `<div class="mt-2"><img src="${msg.attachmentUrl}" style="max-width:200px;border-radius:8px;" alt="Зображення"></div>`;
+                body += `<div class="mt-2"><img src="${msg.attachmentUrl}" style="max-width:200px;border-radius:8px;cursor:zoom-in;" alt="Зображення"></div>`;
             } else {
                 body += `<div class="mt-2"><a href="${msg.attachmentUrl}" class="glow-text" target="_blank"><i class="fas fa-file me-1"></i>Файл</a></div>`;
             }
