@@ -39,8 +39,8 @@ class GameEvent
     #[ORM\Column]
     private int $maxParticipants = 10;
 
-    #[ORM\Column(length: 20)]
-    private string $status = 'planned'; // planned, active, completed, cancelled
+    #[ORM\Column(length: 20, options: ['default' => 'planned'])]
+    private string $status = 'planned';
 
     #[ORM\ManyToMany(targetEntity: User::class)]
     #[ORM\JoinTable(name: 'event_participants')]

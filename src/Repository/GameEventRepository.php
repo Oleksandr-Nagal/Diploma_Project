@@ -16,10 +16,9 @@ class GameEventRepository extends ServiceEntityRepository
     public function findUpcomingEvents(int $limit = 20): array
     {
         return $this->createQueryBuilder('e')
-            ->where('e.startAt > :now')
-            ->andWhere('e.status = :status')
-            ->setParameter('now', new \DateTime())
-            ->setParameter('status', 'planned')
+            ->where('e.status = :planned OR e.status = :active')
+            ->setParameter('planned', 'planned')
+            ->setParameter('active', 'active')
             ->orderBy('e.startAt', 'ASC')
             ->setMaxResults($limit)
             ->getQuery()

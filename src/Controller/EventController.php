@@ -35,6 +35,7 @@ class EventController extends AbstractController
             $event->setGame($em->getReference(Game::class, $request->request->get('game_id')));
             $event->setStartAt(new \DateTime($request->request->get('start_at')));
             $event->setMaxParticipants((int) $request->request->get('max_participants', 10));
+            $event->setStatus('planned');
 
             if ($endAt = $request->request->get('end_at')) {
                 $event->setEndAt(new \DateTime($endAt));
@@ -56,7 +57,7 @@ class EventController extends AbstractController
     public function show(GameEvent $event): Response
     {
         return $this->render('events/show.html.twig', [
-            'events' => $event,
+            'event' => $event,
             'isParticipant' => $event->getParticipants()->contains($this->getUser()),
             'isOrganizer' => $event->getOrganizer() === $this->getUser(),
         ]);
