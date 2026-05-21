@@ -54,8 +54,16 @@ class EventController extends AbstractController
     }
 
     #[Route('/{id}', name: 'app_event_show')]
-    public function show(GameEvent $event): Response
+    public function show(int $id, GameEventRepository $eventRepo): Response
     {
+        $eventRepo->deleteExpiredEvents();
+        $event = $eventRepo->find($id);
+
+        if (!$event) {
+            $this->addFlash('info', 'Подія завершилась і була видалена.');
+            return $this->redirectToRoute('app_events');
+        }
+
         return $this->render('events/show.html.twig', [
             'event' => $event,
             'isParticipant' => $event->getParticipants()->contains($this->getUser()),
@@ -64,8 +72,16 @@ class EventController extends AbstractController
     }
 
     #[Route('/{id}/join', name: 'app_event_join', methods: ['POST'])]
-    public function join(GameEvent $event, EntityManagerInterface $em): Response
+    public function join(int $id, GameEventRepository $eventRepo, EntityManagerInterface $em): Response
     {
+        $eventRepo->deleteExpiredEvents();
+        $event = $eventRepo->find($id);
+
+        if (!$event) {
+            $this->addFlash('info', 'Подія завершилась і була видалена.');
+            return $this->redirectToRoute('app_events');
+        }
+
         if ($event->getParticipants()->count() >= $event->getMaxParticipants()) {
             $this->addFlash('error', 'Подія вже повна.');
             return $this->redirectToRoute('app_event_show', ['id' => $event->getId()]);
@@ -79,8 +95,16 @@ class EventController extends AbstractController
     }
 
     #[Route('/{id}/leave', name: 'app_event_leave', methods: ['POST'])]
-    public function leave(GameEvent $event, EntityManagerInterface $em): Response
+    public function leave(int $id, GameEventRepository $eventRepo, EntityManagerInterface $em): Response
     {
+        $eventRepo->deleteExpiredEvents();
+        $event = $eventRepo->find($id);
+
+        if (!$event) {
+            $this->addFlash('info', 'Подія завершилась і була видалена.');
+            return $this->redirectToRoute('app_events');
+        }
+
         $event->removeParticipant($this->getUser());
         $em->flush();
         return $this->redirectToRoute('app_event_show', ['id' => $event->getId()]);

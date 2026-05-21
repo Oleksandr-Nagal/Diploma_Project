@@ -42,9 +42,27 @@ class GameEventRepository extends ServiceEntityRepository
             ->execute();
     }
 
+    public function deleteExpiredEvents(): void
+    {
+        $conn = $this->getEntityManager()->getConnection();
+
+        $conn->executeStatement(
+            'DELETE FROM chat_message WHERE event_id IN (SELECT id FROM game_event WHERE end_at IS NOT NULL AND end_at <= NOW())'
+        );
+
+        $conn->executeStatement(
+            'DELETE FROM event_participants WHERE game_event_id IN (SELECT id FROM game_event WHERE end_at IS NOT NULL AND end_at <= NOW())'
+        );
+
+        $conn->executeStatement(
+            'DELETE FROM game_event WHERE end_at IS NOT NULL AND end_at <= NOW()'
+        );
+    }
+
     public function findUpcomingEvents(int $limit = 20): array
     {
         $this->updateEventStatuses();
+        $this->deleteExpiredEvents();
         $this->getEntityManager()->clear();
 
         return $this->createQueryBuilder('e')

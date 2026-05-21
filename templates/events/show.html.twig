@@ -89,4 +89,19 @@
         </div>
     </div>
 </div>
+
+{% if event.endAt %}
+<script>
+(function() {
+    const endAt = new Date('{{ event.endAt|date('Y-m-d\\TH:i:s') }}');
+    function check() {
+        if (new Date() >= endAt) {
+            window.location.href = '{{ path('app_events') }}';
+        }
+    }
+    check();
+    setInterval(check, 5000);
+})();
+</script>
+{% endif %}
 {% endblock %}
