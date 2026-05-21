@@ -11,6 +11,7 @@ use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\Range;
 
 class ProfileType extends AbstractType
 {
@@ -26,6 +27,10 @@ class ProfileType extends AbstractType
             ->add('age', IntegerType::class, [
                 'label' => 'Вік',
                 'required' => false,
+                'attr' => ['min' => 6, 'max' => 60],
+                'constraints' => [
+                    new Range(min: 6, max: 60, notInRangeMessage: 'Вік має бути від {{ min }} до {{ max }} років'),
+                ],
             ])
             ->add('city', TextType::class, [
                 'label' => 'Місто',
