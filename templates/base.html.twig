@@ -163,6 +163,24 @@
         }
         .form-control::placeholder, textarea.form-control::placeholder { color: var(--gf-muted); opacity: 0.8; }
 
+        .form-select {
+            background-color: var(--gf-input-bg);
+            border: 2px solid var(--gf-input-border);
+            color: var(--gf-text);
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+        }
+        .form-select:focus {
+            background-color: var(--gf-input-bg);
+            color: var(--gf-text);
+            border-color: var(--gf-primary);
+            box-shadow: 0 0 0 0.2rem rgba(108, 92, 231, 0.15);
+        }
+        .form-select option {
+            background-color: var(--gf-card);
+            color: var(--gf-text);
+        }
+
         .avatar-sm {
             width: 36px;
             height: 36px;
@@ -258,6 +276,44 @@
             margin-top: 3rem;
             color: var(--gf-muted);
         }
+    </style>
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/css/tom-select.min.css" rel="stylesheet">
+    <style>
+        .ts-wrapper {
+            background: transparent !important;
+            border: none !important;
+            padding: 0 !important;
+        }
+        .ts-wrapper .ts-control {
+            background: var(--gf-input-bg) !important;
+            color: var(--gf-text) !important;
+            border: 2px solid var(--gf-input-border) !important;
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            min-height: 46px;
+            box-shadow: none !important;
+        }
+        .ts-wrapper .ts-control input {
+            background: transparent !important;
+            color: var(--gf-text) !important;
+        }
+        .ts-wrapper .ts-control input::placeholder { color: var(--gf-muted); opacity: 0.8; }
+        .ts-wrapper .ts-control .item { color: var(--gf-text); background: transparent; }
+        .ts-wrapper.focus .ts-control {
+            border-color: var(--gf-primary) !important;
+            box-shadow: 0 0 0 0.2rem rgba(108, 92, 231, 0.15) !important;
+        }
+        .ts-dropdown,
+        .ts-dropdown .ts-dropdown-content {
+            background: var(--gf-card) !important;
+            border: 2px solid var(--gf-input-border) !important;
+            border-radius: 10px;
+            color: var(--gf-text);
+        }
+        .ts-dropdown .option { color: var(--gf-text); padding: 0.5rem 1rem; }
+        .ts-dropdown .option.active,
+        .ts-dropdown .option:hover { background: rgba(108, 92, 231, 0.2); color: var(--gf-text); }
+        .ts-wrapper.single .ts-control::after { border-color: var(--gf-muted) transparent transparent transparent; }
     </style>
     {% block stylesheets %}{% endblock %}
 </head>
@@ -395,6 +451,17 @@
         } catch(e) {}
     }, 30000);
     {% endif %}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/js/tom-select.complete.min.js"></script>
+<script>
+    document.querySelectorAll('.tom-select-city').forEach(el => {
+        new TomSelect(el, {
+            create: false,
+            sortField: { field: 'text', direction: 'asc' },
+            placeholder: el.querySelector('option[value=""]')?.textContent || 'Оберіть місто',
+            allowEmptyOption: true,
+        });
+    });
 </script>
 {% block javascripts %}{% endblock %}
 </body>

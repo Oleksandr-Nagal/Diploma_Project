@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Data\UkrainianCities;
 use App\Entity\Lobby;
 use App\Entity\LobbyMember;
 use App\Form\LobbyType;
@@ -36,6 +37,7 @@ class LobbyController extends AbstractController
             'lobbies' => $lobbyRepo->findOpenLobbies($filters),
             'games' => $gameRepo->findActiveGames(),
             'filters' => $filters,
+            'cities_list' => UkrainianCities::LIST,
         ]);
     }
 

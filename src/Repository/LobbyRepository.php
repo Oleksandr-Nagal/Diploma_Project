@@ -27,7 +27,7 @@ class LobbyRepository extends ServiceEntityRepository
             $qb->andWhere('g.id = :gameId')->setParameter('gameId', $filters['game']);
         }
         if (!empty($filters['city'])) {
-            $qb->andWhere('l.city LIKE :city')->setParameter('city', '%' . $filters['city'] . '%');
+            $qb->andWhere('l.city = :city')->setParameter('city', $filters['city']);
         }
         if (!empty($filters['language'])) {
             $qb->andWhere('l.language = :lang')->setParameter('lang', $filters['language']);

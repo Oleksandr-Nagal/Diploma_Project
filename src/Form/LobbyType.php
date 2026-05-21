@@ -2,6 +2,7 @@
 
 namespace App\Form;
 
+use App\Data\UkrainianCities;
 use App\Entity\Game;
 use App\Entity\Lobby;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
@@ -67,9 +68,12 @@ class LobbyType extends AbstractType
                 ],
                 'placeholder' => 'Будь-яка',
             ])
-            ->add('city', TextType::class, [
+            ->add('city', ChoiceType::class, [
                 'label' => 'Місто',
                 'required' => false,
+                'choices' => UkrainianCities::getChoices(),
+                'placeholder' => 'Оберіть місто',
+                'attr' => ['class' => 'tom-select-city'],
             ])
             ->add('isPrivate', CheckboxType::class, [
                 'label' => 'Приватне лобі',

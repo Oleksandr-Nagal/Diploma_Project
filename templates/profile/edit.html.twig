@@ -2,6 +2,14 @@
 
 {% block title %}Редагування профілю{% endblock %}
 
+{% block stylesheets %}
+<style>
+    .profile-edit-form {
+        padding: 2rem 2.5rem;
+    }
+</style>
+{% endblock %}
+
 {% block body %}
 <div class="row justify-content-center">
     <div class="col-lg-8">
@@ -41,14 +49,16 @@
             </div>
         </div>
 
-        <div class="card-gf">
+        <div class="card-gf profile-edit-form">
             <h5 class="mb-3">Інформація профілю</h5>
             {{ form_start(form) }}
                 {% for field in form %}
                     {% if field.vars.name != '_token' %}
                     <div class="mb-3">
                         {{ form_label(field) }}
-                        {{ form_widget(field, {'attr': {'class': field.vars.block_prefixes[1] == 'textarea' ? 'form-control' : (field.vars.block_prefixes[1] == 'choice' ? 'form-select' : 'form-control')}}) }}
+                        {% set base_class = field.vars.block_prefixes[1] == 'textarea' ? 'form-control' : (field.vars.block_prefixes[1] == 'choice' ? 'form-select' : 'form-control') %}
+                        {% set extra_class = field.vars.attr.class|default('') %}
+                        {{ form_widget(field, {'attr': {'class': (base_class ~ ' ' ~ extra_class)|trim}}) }}
                         {{ form_errors(field) }}
                         {% if field.vars.name == 'profileTheme' %}
                             <div class="d-flex gap-2 flex-wrap mt-2">

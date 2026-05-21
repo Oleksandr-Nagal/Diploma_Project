@@ -2,6 +2,7 @@
 
 namespace App\Form;
 
+use App\Data\UkrainianCities;
 use App\Entity\User;
 use App\Service\ProfileThemeService;
 use Symfony\Component\Form\AbstractType;
@@ -32,9 +33,12 @@ class ProfileType extends AbstractType
                     new Range(min: 6, max: 60, notInRangeMessage: 'Вік має бути від {{ min }} до {{ max }} років'),
                 ],
             ])
-            ->add('city', TextType::class, [
+            ->add('city', ChoiceType::class, [
                 'label' => 'Місто',
                 'required' => false,
+                'choices' => UkrainianCities::getChoices(),
+                'placeholder' => 'Оберіть місто',
+                'attr' => ['class' => 'tom-select-city'],
             ])
             ->add('language', ChoiceType::class, [
                 'label' => 'Мова',

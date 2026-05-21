@@ -16,10 +16,11 @@
                     {% if field.vars.name != '_token' %}
                     <div class="mb-3">
                         {{ form_label(field) }}
+                        {% set extra_class = field.vars.attr.class|default('') %}
                         {% if field.vars.block_prefixes[1] == 'checkbox' %}
                             <div>{{ form_widget(field) }}</div>
                         {% elseif field.vars.block_prefixes[1] == 'choice' or field.vars.block_prefixes[1] == 'entity' %}
-                            {{ form_widget(field, {'attr': {'class': 'form-select'}}) }}
+                            {{ form_widget(field, {'attr': {'class': ('form-select ' ~ extra_class)|trim}}) }}
                         {% elseif field.vars.block_prefixes[1] == 'textarea' %}
                             {{ form_widget(field, {'attr': {'class': 'form-control'}}) }}
                         {% else %}

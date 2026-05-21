@@ -33,7 +33,12 @@
         </div>
         <div class="col-md-2">
             <label class="form-label">Місто</label>
-            <input type="text" name="city" class="form-control" value="{{ filters.city }}" placeholder="Будь-яке">
+            <select name="city" class="tom-select-city">
+                <option value="">Будь-яке</option>
+                {% for city in cities_list %}
+                    <option value="{{ city }}" {{ filters.city == city ? 'selected' : '' }}>{{ city }}</option>
+                {% endfor %}
+            </select>
         </div>
         <div class="col-md-2">
             <label class="form-label">Мова</label>
