@@ -26,3 +26,8 @@ yarn-error.log
 /bin/mercure/mercure.db
 /bin/mercure/*.db
 
+
+###> phpunit/phpunit ###
+/phpunit.xml
+/.phpunit.cache/
+###< phpunit/phpunit ###
