@@ -1,0 +1,81 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Керування Premium{% endblock %}
+
+{% block stylesheets %}
+<style>
+    .manage-container {
+        max-width: 600px;
+        margin: 2rem auto;
+    }
+    .manage-card {
+        background: var(--gf-card);
+        border: 1px solid var(--gf-border);
+        border-radius: 12px;
+        padding: 2rem;
+    }
+    .status-active {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(0, 184, 148, 0.15);
+        color: var(--gf-success);
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+    }
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--gf-border);
+    }
+    .info-row:last-child {
+        border-bottom: none;
+    }
+    .info-label {
+        color: var(--gf-muted);
+    }
+    .info-value {
+        color: var(--gf-text);
+        font-weight: 500;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="manage-container">
+    <a href="{{ path('app_premium') }}" class="btn btn-sm btn-outline-secondary mb-3">
+        <i class="fas fa-arrow-left"></i> Назад
+    </a>
+
+    <div class="manage-card">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="mb-0">Моя підписка</h3>
+            <span class="status-active"><i class="fas fa-circle fa-xs"></i> Активна</span>
+        </div>
+
+        <div class="info-row">
+            <span class="info-label">План</span>
+            <span class="info-value">Premium</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Залишилось</span>
+            <span class="info-value">{{ daysRemaining }} {{ daysRemaining == 1 ? 'день' : (daysRemaining < 5 ? 'дні' : 'днів') }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Діє до</span>
+            <span class="info-value">{{ user.premiumExpiresAt ? user.premiumExpiresAt|date('d.m.Y') : 'Безстроково' }}</span>
+        </div>
+
+        <div class="mt-4">
+            <h5>Продовжити підписку</h5>
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="{{ path('app_premium_checkout', {plan: 'month'}) }}" class="btn btn-outline-primary">+1 місяць</a>
+                <a href="{{ path('app_premium_checkout', {plan: 'quarter'}) }}" class="btn btn-outline-primary">+3 місяці</a>
+                <a href="{{ path('app_premium_checkout', {plan: 'year'}) }}" class="btn btn-outline-primary">+1 рік</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

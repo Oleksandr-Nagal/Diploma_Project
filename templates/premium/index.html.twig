@@ -1,0 +1,210 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Premium{% endblock %}
+
+{% block stylesheets %}
+<style>
+    .premium-hero {
+        text-align: center;
+        padding: 3rem 1rem;
+        background: linear-gradient(135deg, rgba(108, 92, 231, 0.1) 0%, rgba(0, 206, 201, 0.1) 100%);
+        border-radius: 16px;
+        border: 1px solid var(--gf-border);
+        margin-bottom: 2rem;
+    }
+    .premium-hero h1 {
+        font-size: 2.5rem;
+        background: linear-gradient(135deg, #6c5ce7, #00cec9);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 1rem;
+    }
+    .premium-badge-large {
+        display: inline-block;
+        background: linear-gradient(135deg, #f39c12, #e74c3c);
+        color: #fff;
+        padding: 0.3rem 1rem;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+    }
+    .premium-features {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    .premium-feature-card {
+        background: var(--gf-card);
+        border: 1px solid var(--gf-border);
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
+        transition: transform 0.2s, border-color 0.2s;
+    }
+    .premium-feature-card:hover {
+        transform: translateY(-4px);
+        border-color: var(--gf-primary);
+    }
+    .premium-feature-card i {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        background: linear-gradient(135deg, #6c5ce7, #00cec9);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    .premium-feature-card h5 {
+        color: var(--gf-text);
+        margin-bottom: 0.5rem;
+    }
+    .premium-feature-card p {
+        color: var(--gf-muted);
+        margin: 0;
+        font-size: 0.9rem;
+    }
+    .pricing-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    .pricing-card {
+        background: var(--gf-card);
+        border: 1px solid var(--gf-border);
+        border-radius: 12px;
+        padding: 2rem 1.5rem;
+        text-align: center;
+        transition: transform 0.2s, border-color 0.2s;
+        position: relative;
+    }
+    .pricing-card:hover {
+        transform: translateY(-4px);
+        border-color: var(--gf-primary);
+    }
+    .pricing-card.popular {
+        border-color: var(--gf-primary);
+        box-shadow: 0 0 20px rgba(108, 92, 231, 0.3);
+    }
+    .pricing-card.popular::before {
+        content: 'Популярний';
+        position: absolute;
+        top: -12px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--gf-primary);
+        color: #fff;
+        padding: 0.2rem 1rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    .pricing-card .price {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--gf-text);
+    }
+    .pricing-card .price span {
+        font-size: 1rem;
+        color: var(--gf-muted);
+    }
+    .pricing-card .period {
+        color: var(--gf-muted);
+        margin-bottom: 1.5rem;
+    }
+    .premium-status-card {
+        background: linear-gradient(135deg, rgba(108, 92, 231, 0.2) 0%, rgba(0, 206, 201, 0.2) 100%);
+        border: 1px solid var(--gf-primary);
+        border-radius: 12px;
+        padding: 2rem;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="premium-hero">
+    <span class="premium-badge-large">PRO</span>
+    <h1>GameFinder Premium</h1>
+    <p class="fs-5" style="color: var(--gf-text);">Отримай максимум від платформи з ексклюзивними перевагами</p>
+</div>
+
+{% if user.isPremium %}
+<div class="premium-status-card">
+    <h4><i class="fas fa-crown text-warning"></i> Ви Premium-користувач!</h4>
+    <p class="text-muted mb-2">
+        {% if daysRemaining > 0 %}
+            Підписка активна ще <strong>{{ daysRemaining }}</strong> {{ daysRemaining == 1 ? 'день' : (daysRemaining < 5 ? 'дні' : 'днів') }}
+        {% else %}
+            Підписка безстрокова
+        {% endif %}
+    </p>
+    <a href="{{ path('app_premium_manage') }}" class="btn btn-outline-light">
+        <i class="fas fa-cog"></i> Керувати підпискою
+    </a>
+</div>
+{% endif %}
+
+<h3 class="text-center mb-4">Переваги Premium</h3>
+<div class="premium-features">
+    <div class="premium-feature-card">
+        <i class="fas fa-star"></i>
+        <h5>Пріоритет у пошуку</h5>
+        <p>Ваші лобі завжди відображаються першими у результатах пошуку</p>
+    </div>
+    <div class="premium-feature-card">
+        <i class="fas fa-palette"></i>
+        <h5>Ексклюзивні теми</h5>
+        <p>Доступ до унікальних тем оформлення профілю</p>
+    </div>
+    <div class="premium-feature-card">
+        <i class="fas fa-circle-radiation"></i>
+        <h5>Анімований профіль</h5>
+        <p>Яскрава анімована рамка навколо вашого аватара</p>
+    </div>
+    <div class="premium-feature-card">
+        <i class="fas fa-face-grin-stars"></i>
+        <h5>Ексклюзивні емодзі</h5>
+        <p>Розширений набір емодзі у чаті, доступний лише для PRO</p>
+    </div>
+    <div class="premium-feature-card">
+        <i class="fas fa-shield-halved"></i>
+        <h5>Бейдж PRO</h5>
+        <p>Унікальний бейдж на профілі, що підкреслює ваш статус</p>
+    </div>
+    <div class="premium-feature-card">
+        <i class="fas fa-bolt"></i>
+        <h5>Ранній доступ</h5>
+        <p>Першими отримуйте нові функції платформи</p>
+    </div>
+</div>
+
+{% if not user.isPremium %}
+<h3 class="text-center mb-4">Оберіть план</h3>
+<div class="pricing-cards">
+    <div class="pricing-card">
+        <h5>Місяць</h5>
+        <div class="price">99 <span>грн</span></div>
+        <div class="period">на місяць</div>
+        <a href="{{ path('app_premium_checkout', {plan: 'month'}) }}" class="btn btn-outline-primary w-100">Обрати</a>
+    </div>
+    <div class="pricing-card popular">
+        <h5>Квартал</h5>
+        <div class="price">249 <span>грн</span></div>
+        <div class="period">на 3 місяці</div>
+        <p class="text-success small mb-3"><i class="fas fa-tag"></i> Економія 16%</p>
+        <a href="{{ path('app_premium_checkout', {plan: 'quarter'}) }}" class="btn btn-primary w-100">Обрати</a>
+    </div>
+    <div class="pricing-card">
+        <h5>Рік</h5>
+        <div class="price">799 <span>грн</span></div>
+        <div class="period">на рік</div>
+        <p class="text-success small mb-3"><i class="fas fa-tag"></i> Економія 33%</p>
+        <a href="{{ path('app_premium_checkout', {plan: 'year'}) }}" class="btn btn-outline-primary w-100">Обрати</a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
