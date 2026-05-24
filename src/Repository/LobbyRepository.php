@@ -17,6 +17,7 @@ class LobbyRepository extends ServiceEntityRepository
     {
         $qb = $this->createQueryBuilder('l')
             ->leftJoin('l.game', 'g')
+            ->leftJoin('l.owner', 'o')
             ->where('l.status = :status')
             ->setParameter('status', 'open');
 
@@ -42,7 +43,10 @@ class LobbyRepository extends ServiceEntityRepository
             $qb->andWhere('g.genre = :genre')->setParameter('genre', $filters['genre']);
         }
 
-        return $qb->orderBy('l.createdAt', 'DESC')->getQuery()->getResult();
+        return $qb->orderBy('o.isPremium', 'DESC')
+            ->addOrderBy('l.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
     }
 
     public function findScheduledLobbies(): array
