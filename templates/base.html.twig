@@ -214,6 +214,34 @@
             font-weight: 700;
         }
 
+        .premium-avatar {
+            border: 3px solid transparent !important;
+            background-clip: padding-box !important;
+            position: relative;
+        }
+        .premium-avatar::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f39c12, #e74c3c, #6c5ce7, #00cec9, #f39c12);
+            background-size: 300% 300%;
+            animation: premium-glow 3s ease infinite;
+            z-index: -1;
+        }
+        @keyframes premium-glow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        img.premium-avatar {
+            position: relative;
+        }
+        div.premium-avatar {
+            position: relative;
+            border: none !important;
+        }
+
         .notification-badge {
             position: absolute;
             top: 0;
@@ -368,7 +396,7 @@
                     </li>
                     <li class="nav-item dropdown" id="gf-nav-profile">
                         <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" data-bs-toggle="dropdown">
-                            {{ user_avatar(app.user.avatar, app.user.username, 'sm') }}
+                            {{ user_avatar(app.user.avatar, app.user.username, 'sm', app.user.isPremium) }}
                             <span class="ms-2">{{ app.user.username }}</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" style="background:var(--gf-dropdown-bg);border-color:var(--gf-border);">

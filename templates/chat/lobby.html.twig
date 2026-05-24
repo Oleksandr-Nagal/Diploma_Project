@@ -31,7 +31,7 @@
             <div class="chat-message {{ msg.sender.id == app.user.id ? 'own' : '' }}" data-id="{{ msg.id }}">
                 {% if msg.sender.id != app.user.id %}
                 <div>
-                    {{ user_avatar(msg.sender.avatar, msg.sender.username, 'sm') }}
+                    {{ user_avatar(msg.sender.avatar, msg.sender.username, 'sm', msg.sender.isPremium) }}
                 </div>
                 {% endif %}
                 <div class="chat-bubble">

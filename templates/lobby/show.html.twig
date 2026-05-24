@@ -85,7 +85,7 @@
             {% for member in lobby.members %}
                 {% if member.status == 'accepted' %}
                 <div class="d-flex align-items-center gap-2 mb-2 p-2" style="background:var(--gf-dark);border-radius:10px;">
-                    {{ user_avatar(member.user.avatar, member.user.username, 'sm') }}
+                    {{ user_avatar(member.user.avatar, member.user.username, 'sm', member.user.isPremium) }}
                     <div class="flex-fill">
                         <a href="{{ path('app_profile_public', {id: member.user.id}) }}" class="text-decoration-none" style="color:var(--gf-text)">
                             {{ member.user.username }}
@@ -128,7 +128,7 @@
         <div class="card-gf mt-4">
             <h5 class="mb-3">Власник лобі</h5>
             <div class="d-flex align-items-center gap-3">
-                {{ user_avatar(lobby.owner.avatar, lobby.owner.username, 'md') }}
+                {{ user_avatar(lobby.owner.avatar, lobby.owner.username, 'md', lobby.owner.isPremium) }}
                 <div>
                     <a href="{{ path('app_profile_public', {id: lobby.owner.id}) }}" class="text-decoration-none" style="color:var(--gf-text)">
                         <strong>{{ lobby.owner.username }}</strong>
