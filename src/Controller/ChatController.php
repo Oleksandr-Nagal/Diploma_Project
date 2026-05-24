@@ -8,6 +8,7 @@ use App\Entity\Lobby;
 use App\Entity\User;
 use App\Repository\ChatMessageRepository;
 use App\Service\CloudinaryService;
+use App\Service\EmojiService;
 use App\Service\NotificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -22,9 +23,11 @@ class ChatController extends AbstractController
     public function lobbyChat(Lobby $lobby, ChatMessageRepository $chatRepo): Response
     {
         $messages = $chatRepo->findLobbyMessages($lobby);
+        $user = $this->getUser();
         return $this->render('chat/lobby.html.twig', [
             'lobby' => $lobby,
             'messages' => array_reverse($messages),
+            'emojis' => EmojiService::getEmojis($user->isPremium()),
         ]);
     }
 
@@ -32,6 +35,13 @@ class ChatController extends AbstractController
     public function sendLobbyMessage(Lobby $lobby, Request $request, EntityManagerInterface $em, CloudinaryService $cloudinary): Response
     {
         $content = trim($request->request->get('message', ''));
+
+        if (preg_match('/\[sticker:([a-z_]+)\]/', $content, $matches)) {
+            if (!$this->getUser()->isPremium() || !EmojiService::isValidSticker($matches[1])) {
+                $content = '';
+            }
+        }
+
         $voiceFile = $request->files->get('voice');
         $attachment = $request->files->get('attachment');
         if (empty($content) && !$attachment && !$voiceFile) {
@@ -124,10 +134,12 @@ class ChatController extends AbstractController
     #[Route('/messages/{id}', name: 'app_private_chat')]
     public function privateChat(User $user, ChatMessageRepository $chatRepo): Response
     {
-        $messages = $chatRepo->findPrivateMessages($this->getUser(), $user);
+        $currentUser = $this->getUser();
+        $messages = $chatRepo->findPrivateMessages($currentUser, $user);
         return $this->render('chat/private.html.twig', [
             'otherUser' => $user,
             'messages' => array_reverse($messages),
+            'emojis' => EmojiService::getEmojis($currentUser->isPremium()),
         ]);
     }
 

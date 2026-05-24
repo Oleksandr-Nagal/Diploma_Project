@@ -41,7 +41,7 @@
                     {% if msg.type == 'voice' and msg.attachmentUrl %}
                         <audio controls preload="metadata" src="{{ msg.attachmentUrl }}" style="max-width:260px;"></audio>
                     {% else %}
-                        {{ msg.content }}
+                        {{ msg.content|render_stickers }}
                         {% if msg.attachmentUrl %}
                             <div class="mt-2">
                                 {% if msg.type == 'image' %}
@@ -97,6 +97,9 @@
             </div>
             <form id="chatForm" class="d-flex gap-2 p-3 align-items-center" enctype="multipart/form-data" style="margin:0;">
                 <input type="text" name="message" id="chatInput" class="form-control" placeholder="Написати повідомлення..." autocomplete="off">
+                <button type="button" id="emojiBtn" class="btn btn-gf-outline" aria-label="Емодзі" title="Емодзі">
+                    <i class="fas fa-face-smile"></i>
+                </button>
                 <label class="btn btn-gf-outline" style="cursor:pointer;" aria-label="Прикріпити файл" role="button">
                     <i class="fas fa-paperclip"></i>
                     <input type="file" name="attachment" id="fileInput" style="display:none;" accept="image/*,.doc,.docx" aria-label="Вибрати файл">
@@ -124,6 +127,7 @@
 <script src="{{ asset('js/chat-attachment.js') }}"></script>
 <script src="{{ asset('js/chat-lightbox.js') }}"></script>
 <script src="{{ asset('js/voice-room.js') }}"></script>
+<script src="{{ asset('js/emoji-picker.js') }}"></script>
 <script>
 const chatBox = document.getElementById('chatMessages');
 const chatForm = document.getElementById('chatForm');
@@ -164,6 +168,15 @@ function getLastMessageId() {
     return parseInt(msgs[msgs.length - 1].dataset.id) || 0;
 }
 
+const stickerData = {{ emojis.stickers is defined ? emojis.stickers|json_encode|raw : '{}' }};
+function renderContentWithStickers(content) {
+    return content.replace(/\[sticker:([a-z_]+)\]/g, (match, code) => {
+        const s = stickerData[code];
+        if (!s) return match;
+        return `<div class="chat-sticker" title="${s.label}"><div class="chat-sticker-inner" style="background:linear-gradient(135deg,${s.color1},${s.color2});"><i class="fas ${s.icon}"></i></div></div>`;
+    });
+}
+
 function renderMessage(msg) {
     const isOwn = msg.senderId === currentUserId;
     const existing = chatBox.querySelector(`[data-id="${msg.id}"]`);
@@ -185,7 +198,7 @@ function renderMessage(msg) {
     if (msg.type === 'voice' && msg.attachmentUrl) {
         body = renderVoiceBubble(msg.attachmentUrl);
     } else {
-        body = msg.content;
+        body = renderContentWithStickers(msg.content);
         if (msg.attachmentUrl) {
             if (msg.type === 'image') {
                 body += `<div class="mt-2"><img src="${msg.attachmentUrl}" style="max-width:200px;border-radius:8px;cursor:zoom-in;" alt="Зображення"></div>`;
@@ -270,6 +283,13 @@ chatInput.addEventListener('keydown', (e) => {
 });
 
 initVoiceRecorder({ sendUrl: sendUrl, onMessage: renderMessage });
+
+initEmojiPicker({
+    buttonId: 'emojiBtn',
+    inputId: 'chatInput',
+    isPremium: {{ app.user.isPremium ? 'true' : 'false' }},
+    emojis: {{ emojis|json_encode|raw }}
+});
 
 const voiceJoinUrl = '{{ path("app_lobby_voice_join", {id: lobby.id}) }}';
 const voiceSignalUrl = '{{ path("app_lobby_voice_signal", {id: lobby.id}) }}';

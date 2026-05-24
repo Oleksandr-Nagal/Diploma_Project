@@ -257,6 +257,97 @@
             justify-content: center;
         }
 
+        .emoji-picker {
+            position: absolute;
+            bottom: 100%;
+            right: 0;
+            background: var(--gf-card);
+            border: 1px solid var(--gf-border);
+            border-radius: 12px;
+            padding: 0.75rem;
+            width: 280px;
+            max-height: 250px;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        .emoji-picker-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        .emoji-item {
+            font-size: 1.4rem;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 6px;
+            transition: background 0.15s;
+            line-height: 1;
+        }
+        .emoji-item:hover {
+            background: rgba(108, 92, 231, 0.2);
+        }
+        .emoji-picker-divider {
+            border-top: 1px solid var(--gf-border);
+            margin: 0.5rem 0;
+            padding-top: 0.5rem;
+            font-size: 0.75rem;
+            color: var(--gf-primary);
+            font-weight: 600;
+        }
+        .sticker-grid {
+            display: grid !important;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+        }
+        .sticker-item {
+            cursor: pointer;
+            border-radius: 8px;
+            transition: transform 0.15s;
+        }
+        .sticker-item:hover {
+            transform: scale(1.15);
+        }
+        .sticker-preview {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .sticker-preview i {
+            font-size: 1.4rem;
+            color: #fff;
+        }
+        .chat-sticker {
+            display: inline-block;
+            margin: 4px 0;
+        }
+        .chat-sticker-inner {
+            width: 64px;
+            height: 64px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: sticker-bounce 0.5s ease;
+        }
+        .chat-sticker-inner i {
+            font-size: 2rem;
+            color: #fff;
+            animation: sticker-pulse 2s ease-in-out infinite;
+        }
+        @keyframes sticker-bounce {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes sticker-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
         .chat-container {
             height: calc(100vh - 250px);
             display: flex;
