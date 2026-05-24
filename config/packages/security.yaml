@@ -39,6 +39,7 @@ security:
     - { path: ^/register, roles: PUBLIC_ACCESS }
     - { path: ^/oauth, roles: PUBLIC_ACCESS }
     - { path: ^/banned, roles: PUBLIC_ACCESS }
+    - { path: ^/premium/callback, roles: PUBLIC_ACCESS }
     - { path: ^/admin, roles: ROLE_ADMIN }
     - { path: ^/moderator, roles: ROLE_MODERATOR }
     - { path: ^/, roles: ROLE_USER }
