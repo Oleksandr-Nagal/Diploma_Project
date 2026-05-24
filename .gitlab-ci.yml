@@ -1,0 +1,69 @@
+stages:
+  - build
+  - lint
+  - test
+
+variables:
+  APP_ENV: test
+
+cache:
+  paths:
+    - vendor/
+    - node_modules/
+
+build:composer:
+  stage: build
+  tags: []
+  script:
+    - composer install --no-interaction --prefer-dist --optimize-autoloader
+  artifacts:
+    paths:
+      - vendor/
+    expire_in: 1 hour
+
+build:npm:
+  stage: build
+  tags: []
+  script:
+    - npm install
+    - npm run build
+  artifacts:
+    paths:
+      - public/build/
+    expire_in: 1 hour
+
+lint:php-syntax:
+  stage: lint
+  tags: []
+  needs:
+    - build:composer
+  script:
+    - Get-ChildItem -Path src/,tests/ -Filter *.php -Recurse | ForEach-Object { php -l $_.FullName }
+
+lint:twig:
+  stage: lint
+  tags: []
+  needs:
+    - build:composer
+  script:
+    - php bin/console lint:twig templates/
+
+lint:container:
+  stage: lint
+  tags: []
+  needs:
+    - build:composer
+  script:
+    - php bin/console lint:container
+
+test:unit:
+  stage: test
+  tags: []
+  needs:
+    - build:composer
+  script:
+    - php bin/phpunit --testsuite Unit --testdox
+  artifacts:
+    when: always
+    reports:
+      junit: var/log/junit.xml

@@ -42,6 +42,10 @@
         </deprecationTrigger>
     </source>
 
+    <logging>
+        <junit outputFile="var/log/junit.xml"/>
+    </logging>
+
     <extensions>
     </extensions>
 </phpunit>
