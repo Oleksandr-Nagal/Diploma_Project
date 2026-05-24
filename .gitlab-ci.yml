@@ -15,7 +15,9 @@ build:composer:
   stage: build
   tags: []
   script:
-    - composer install --no-interaction --prefer-dist --optimize-autoloader
+    - Copy-Item .env.test .env
+    - composer install --no-interaction --prefer-dist --optimize-autoloader --no-scripts
+    - php bin/console cache:clear
   artifacts:
     paths:
       - vendor/
@@ -46,6 +48,7 @@ lint:twig:
   needs:
     - build:composer
   script:
+    - Copy-Item .env.test .env
     - php bin/console lint:twig templates/
 
 lint:container:
@@ -54,6 +57,7 @@ lint:container:
   needs:
     - build:composer
   script:
+    - Copy-Item .env.test .env
     - php bin/console lint:container
 
 test:unit:
@@ -62,6 +66,7 @@ test:unit:
   needs:
     - build:composer
   script:
+    - Copy-Item .env.test .env
     - php bin/phpunit --testsuite Unit --testdox
   artifacts:
     when: always
