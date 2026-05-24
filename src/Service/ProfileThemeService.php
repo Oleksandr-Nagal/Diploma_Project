@@ -105,15 +105,74 @@ class ProfileThemeService
             ],
             'preview' => ['#ffffff', '#6c5ce7'],
         ],
+        'neon' => [
+            'label' => 'Неон ★',
+            'premium' => true,
+            'vars' => [
+                '--gf-primary' => '#00ff88',
+                '--gf-secondary' => '#00e5ff',
+                '--gf-card' => '#0a0f1a',
+                '--gf-dark' => '#060b12',
+                '--gf-darker' => '#030609',
+                '--gf-border' => '#0f2030',
+                '--gf-text' => '#e0fff0',
+                '--gf-muted' => '#80bfa0',
+                '--gf-input-bg' => '#060b12',
+                '--gf-input-border' => '#0f2030',
+            ],
+            'preview' => ['#00ff88', '#00e5ff'],
+        ],
+        'gold' => [
+            'label' => 'Золото ★',
+            'premium' => true,
+            'vars' => [
+                '--gf-primary' => '#f1c40f',
+                '--gf-secondary' => '#f39c12',
+                '--gf-card' => '#1a1500',
+                '--gf-dark' => '#120e00',
+                '--gf-darker' => '#0a0800',
+                '--gf-border' => '#2e2500',
+                '--gf-text' => '#fff8e0',
+                '--gf-muted' => '#bfa860',
+                '--gf-input-bg' => '#120e00',
+                '--gf-input-border' => '#2e2500',
+            ],
+            'preview' => ['#f1c40f', '#f39c12'],
+        ],
+        'cyberpunk' => [
+            'label' => 'Кіберпанк ★',
+            'premium' => true,
+            'vars' => [
+                '--gf-primary' => '#ff00ff',
+                '--gf-secondary' => '#00ffff',
+                '--gf-card' => '#0d0015',
+                '--gf-dark' => '#08000d',
+                '--gf-darker' => '#040008',
+                '--gf-border' => '#1a0030',
+                '--gf-text' => '#ffe0ff',
+                '--gf-muted' => '#b080b0',
+                '--gf-input-bg' => '#08000d',
+                '--gf-input-border' => '#1a0030',
+            ],
+            'preview' => ['#ff00ff', '#00ffff'],
+        ],
     ];
 
-    public static function getChoices(): array
+    public static function getChoices(bool $includePremium = true): array
     {
         $choices = [];
         foreach (self::THEMES as $key => $data) {
+            if (!$includePremium && !empty($data['premium'])) {
+                continue;
+            }
             $choices[$data['label']] = $key;
         }
         return $choices;
+    }
+
+    public static function isPremiumTheme(string $key): bool
+    {
+        return !empty(self::THEMES[$key]['premium']);
     }
 
     public static function cssVariables(?string $key): string

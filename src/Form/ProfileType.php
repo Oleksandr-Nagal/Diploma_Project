@@ -60,7 +60,7 @@ class ProfileType extends AbstractType
             ->add('profileTheme', ChoiceType::class, [
                 'label' => 'Тема публічного профілю',
                 'required' => false,
-                'choices' => ProfileThemeService::getChoices(),
+                'choices' => ProfileThemeService::getChoices($options['is_premium']),
                 'placeholder' => '— Типова —',
                 'help' => 'Відображатиметься відвідувачам вашої сторінки.',
             ]);
@@ -68,6 +68,9 @@ class ProfileType extends AbstractType
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults(['data_class' => User::class]);
+        $resolver->setDefaults([
+            'data_class' => User::class,
+            'is_premium' => false,
+        ]);
     }
 }

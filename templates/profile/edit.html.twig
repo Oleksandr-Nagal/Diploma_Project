@@ -63,7 +63,9 @@
                         {% if field.vars.name == 'profileTheme' %}
                             <div class="d-flex gap-2 flex-wrap mt-2">
                                 {% for key, data in profile_themes() %}
+                                    {% if not data.premium is defined or not data.premium or app.user.isPremium %}
                                     <div title="{{ data.label }}" style="width:44px;height:28px;border-radius:8px;border:2px solid {{ app.user.profileTheme == key ? 'var(--gf-success)' : 'var(--gf-border)' }};background:linear-gradient(135deg,{{ data.preview[0] }},{{ data.preview[1] }});"></div>
+                                    {% endif %}
                                 {% endfor %}
                             </div>
                         {% endif %}

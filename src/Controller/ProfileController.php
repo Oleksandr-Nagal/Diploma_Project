@@ -11,6 +11,7 @@ use App\Repository\ReviewRepository;
 use App\Repository\UserRepository;
 use App\Service\AvatarService;
 use App\Service\CloudinaryService;
+use App\Service\ProfileThemeService;
 use App\Service\SteamAchievementService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -29,7 +30,6 @@ class ProfileController extends AbstractController
     ): Response {
         $user = $this->getUser();
 
-        // Auto-sync Steam achievements
         $syncResults = [];
         if ($user->getSteamId()) {
             $games = $gameRepo->findActiveGames();
@@ -58,10 +58,15 @@ class ProfileController extends AbstractController
     public function edit(Request $request, EntityManagerInterface $em, SteamAchievementService $steamService): Response
     {
         $user = $this->getUser();
-        $form = $this->createForm(ProfileType::class, $user);
+        $form = $this->createForm(ProfileType::class, $user, ['is_premium' => $user->isPremium()]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $selectedTheme = $user->getProfileTheme();
+            if ($selectedTheme && ProfileThemeService::isPremiumTheme($selectedTheme) && !$user->isPremium()) {
+                $user->setProfileTheme(null);
+                $this->addFlash('error', 'Ця тема доступна лише для Premium-користувачів.');
+            }
 
             $steamInput = $user->getSteamId();
             if ($steamInput && !preg_match('/^[0-9]{17}$/', $steamInput)) {
