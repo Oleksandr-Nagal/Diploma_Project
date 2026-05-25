@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "6e8b3cee5ade7fdc159ef2a9856e474e",
+    "content-hash": "a32bf2056cb53eb140c983bfdfec0186",
     "packages": [
         {
             "name": "amphp/amp",
@@ -3236,59 +3236,6 @@
             "time": "2018-11-22T07:55:51+00:00"
         },
         {
-            "name": "liqpay/liqpay",
-            "version": "v1.4",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/liqpay/sdk-php.git",
-                "reference": "7e79519523e125d27047a901a8ea65b86b5e854f"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/liqpay/sdk-php/zipball/7e79519523e125d27047a901a8ea65b86b5e854f",
-                "reference": "7e79519523e125d27047a901a8ea65b86b5e854f",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=7.0"
-            },
-            "require-dev": {
-                "phpunit/phpunit": ">=10.4.1"
-            },
-            "type": "library",
-            "autoload": {
-                "classmap": [
-                    "./LiqPay.php"
-                ]
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "OSL 3.0"
-            ],
-            "authors": [
-                {
-                    "name": "Liqpay",
-                    "email": "support@liqpay.ua",
-                    "homepage": "https://www.liqpay.ua/",
-                    "role": "Developer"
-                }
-            ],
-            "description": "SDK for Liqpay",
-            "homepage": "https://github.com/liqpay/sdk-php",
-            "keywords": [
-                "checkout",
-                "liqpay",
-                "pay",
-                "payment",
-                "sdk"
-            ],
-            "support": {
-                "issues": "https://github.com/liqpay/sdk-php/issues",
-                "source": "https://github.com/liqpay/sdk-php/tree/v1.4"
-            },
-            "time": "2025-04-23T11:50:20+00:00"
-        },
-        {
             "name": "monolog/monolog",
             "version": "3.10.0",
             "source": {
@@ -3900,6 +3847,68 @@
                 "source": "https://github.com/ralouphie/getallheaders/tree/develop"
             },
             "time": "2019-03-08T08:55:37+00:00"
+        },
+        {
+            "name": "stripe/stripe-php",
+            "version": "v20.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/stripe/stripe-php.git",
+                "reference": "6d0ec5ffa0678a408d63163ace1453b35a85fb24"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/stripe/stripe-php/zipball/6d0ec5ffa0678a408d63163ace1453b35a85fb24",
+                "reference": "6d0ec5ffa0678a408d63163ace1453b35a85fb24",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "ext-json": "*",
+                "ext-mbstring": "*",
+                "php": ">=7.2.0"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "3.94.0",
+                "phpstan/phpstan": "^1.2",
+                "phpunit/phpunit": "^5.7 || ^9.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "2.0-dev"
+                }
+            },
+            "autoload": {
+                "files": [
+                    "lib/version_check.php"
+                ],
+                "psr-4": {
+                    "Stripe\\": "lib/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Stripe and contributors",
+                    "homepage": "https://github.com/stripe/stripe-php/contributors"
+                }
+            ],
+            "description": "Stripe PHP Library",
+            "homepage": "https://stripe.com/",
+            "keywords": [
+                "api",
+                "payment processing",
+                "stripe"
+            ],
+            "support": {
+                "issues": "https://github.com/stripe/stripe-php/issues",
+                "source": "https://github.com/stripe/stripe-php/tree/v20.1.0"
+            },
+            "time": "2026-04-24T00:12:56+00:00"
         },
         {
             "name": "symfony/asset",
