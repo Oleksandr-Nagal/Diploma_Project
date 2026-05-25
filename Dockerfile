@@ -31,19 +31,26 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
+ENV COMPOSER_ALLOW_SUPERUSER=1
+
 COPY composer.json composer.lock symfony.lock ./
-RUN composer install --no-dev --no-scripts --optimize-autoloader
+RUN composer install --no-dev --no-scripts --optimize-autoloader --no-interaction
 
 COPY . .
 
+RUN touch .env
+
 COPY --from=frontend /app/public/build public/build
 
-RUN composer run-script auto-scripts || true
+RUN composer dump-autoload --optimize --no-interaction
+RUN APP_ENV=prod DATABASE_URL="sqlite:///%kernel.project_dir%/var/data.db" php bin/console cache:warmup --env=prod || true
 
 RUN mkdir -p var/cache var/log && chown -R www-data:www-data var/
-RUN sed -i 's/80/${PORT}/g' /etc/apache2/ports.conf \
-    && sed -i 's/80/${PORT}/g' /etc/apache2/sites-available/000-default.conf
 
-EXPOSE ${PORT:-8080}
+EXPOSE 8080
 
-CMD ["apache2-foreground"]
+CMD rm -f /etc/apache2/mods-enabled/mpm_event.* /etc/apache2/mods-enabled/mpm_worker.* \
+    && sed -i "s/\${PORT}/${PORT:-8080}/g" /etc/apache2/sites-available/000-default.conf \
+    && echo "Listen ${PORT:-8080}" > /etc/apache2/ports.conf \
+    && php bin/console doctrine:schema:update --force --no-interaction \
+    && apache2-foreground
