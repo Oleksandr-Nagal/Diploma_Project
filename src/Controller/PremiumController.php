@@ -123,22 +123,19 @@ class PremiumController extends AbstractController
     public function result(Request $request): Response
     {
         $user = $this->getUser();
+        $sessionId = $request->query->get('session_id');
 
-        if (!$user->isPremium()) {
-            $sessionId = $request->query->get('session_id');
-            if ($sessionId) {
-                $session = $this->stripeService->getSession($sessionId);
-                if ($session && $session->payment_status === 'paid') {
-                    $days = (int) ($session->metadata->days ?? 30);
-                    $this->premiumService->activate($user, $days);
-                    $this->addFlash('success', 'Premium успішно активовано! Дякуємо за підтримку.');
-                    return $this->redirectToRoute('app_premium');
-                }
+        if ($sessionId) {
+            $session = $this->stripeService->getSession($sessionId);
+            if ($session && $session->payment_status === 'paid') {
+                $days = (int) ($session->metadata->days ?? 30);
+                $this->premiumService->activate($user, $days);
+                $this->addFlash('success', 'Premium успішно активовано! Дякуємо за підтримку.');
+                return $this->redirectToRoute('app_premium');
             }
-            $this->addFlash('info', 'Оплата обробляється. Premium буде активовано найближчим часом.');
-        } else {
-            $this->addFlash('success', 'Premium успішно активовано! Дякуємо за підтримку.');
         }
+
+        $this->addFlash('info', 'Оплата обробляється. Premium буде активовано найближчим часом.');
 
         return $this->redirectToRoute('app_premium');
     }
