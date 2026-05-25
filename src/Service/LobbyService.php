@@ -49,6 +49,7 @@ class LobbyService
         $member->setUser($user);
         $member->setStatus($lobby->isPrivate() ? 'pending' : 'accepted');
 
+        $lobby->getMembers()->add($member);
         $this->em->persist($member);
         $this->em->flush();
 

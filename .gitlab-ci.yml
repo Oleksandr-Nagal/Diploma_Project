@@ -72,3 +72,16 @@ test:unit:
     when: always
     reports:
       junit: var/log/junit.xml
+
+test:integration:
+  stage: test
+  tags: []
+  needs:
+    - build:composer
+  script:
+    - Copy-Item .env.test .env
+    - php bin/phpunit --testsuite Integration --testdox
+  artifacts:
+    when: always
+    reports:
+      junit: var/log/junit.xml
