@@ -2,8 +2,8 @@
 
 namespace App\Controller;
 
-use App\Service\LiqPayService;
 use App\Service\PremiumService;
+use App\Service\StripeService;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -15,9 +15,15 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[Route('/premium')]
 class PremiumController extends AbstractController
 {
+    private const PLANS = [
+        'month' => ['days' => 30, 'price' => 99, 'label' => '1 місяць'],
+        'quarter' => ['days' => 90, 'price' => 249, 'label' => '3 місяці'],
+        'year' => ['days' => 365, 'price' => 799, 'label' => '1 рік'],
+    ];
+
     public function __construct(
         private PremiumService $premiumService,
-        private LiqPayService $liqPayService,
+        private StripeService $stripeService,
     ) {}
 
     #[Route('', name: 'app_premium')]
@@ -34,81 +40,64 @@ class PremiumController extends AbstractController
     #[IsGranted('ROLE_USER')]
     public function checkout(string $plan): Response
     {
-        $plans = [
-            'month' => ['days' => 30, 'price' => 99, 'label' => '1 місяць'],
-            'quarter' => ['days' => 90, 'price' => 249, 'label' => '3 місяці'],
-            'year' => ['days' => 365, 'price' => 799, 'label' => '1 рік'],
-        ];
-
-        if (!isset($plans[$plan])) {
+        if (!isset(self::PLANS[$plan])) {
             throw $this->createNotFoundException();
         }
 
-        $selectedPlan = $plans[$plan];
+        $selectedPlan = self::PLANS[$plan];
         $user = $this->getUser();
         $orderId = 'premium_' . $user->getId() . '_' . time();
 
-        $resultUrl = $this->generateUrl('app_premium_result', [], UrlGeneratorInterface::ABSOLUTE_URL);
-        $serverUrl = $this->generateUrl('app_premium_callback', [], UrlGeneratorInterface::ABSOLUTE_URL);
+        $successUrl = $this->generateUrl('app_premium_result', [], UrlGeneratorInterface::ABSOLUTE_URL) . '?session_id={CHECKOUT_SESSION_ID}';
+        $cancelUrl = $this->generateUrl('app_premium', [], UrlGeneratorInterface::ABSOLUTE_URL);
 
-        $paymentForm = $this->liqPayService->createPaymentForm(
+        $stripeUrl = $this->stripeService->createCheckoutSession(
             $orderId,
             $selectedPlan['price'],
             "GameFinder Premium — {$selectedPlan['label']}",
-            $resultUrl,
-            $serverUrl,
+            $selectedPlan['days'],
+            $user->getId(),
+            $successUrl,
+            $cancelUrl,
         );
 
-        return $this->render('premium/checkout.html.twig', [
-            'plan' => $selectedPlan,
-            'planKey' => $plan,
-            'paymentForm' => $paymentForm,
-        ]);
+        return $this->redirect($stripeUrl);
     }
 
     #[Route('/callback', name: 'app_premium_callback', methods: ['POST'])]
     public function callback(Request $request, LoggerInterface $logger): Response
     {
-        $data = $request->request->get('data');
-        $signature = $request->request->get('signature');
+        $payload = $request->getContent();
+        $sigHeader = $request->headers->get('Stripe-Signature');
 
-        if (!$data || !$signature) {
-            return new Response('Missing data', 400);
+        if (!$sigHeader) {
+            return new Response('Missing signature', 400);
         }
 
-        if (!$this->liqPayService->verifyCallback($data, $signature)) {
-            $logger->warning('LiqPay callback: invalid signature');
+        try {
+            $event = $this->stripeService->verifyWebhook($payload, $sigHeader);
+        } catch (\Exception $e) {
+            $logger->warning('Stripe webhook: invalid signature', ['error' => $e->getMessage()]);
             return new Response('Invalid signature', 403);
         }
 
-        $decoded = $this->liqPayService->decodeData($data);
-        $status = $decoded['status'] ?? '';
-        $orderId = $decoded['order_id'] ?? '';
+        if ($event->type === 'checkout.session.completed') {
+            $session = $event->data->object;
+            $metadata = $session->metadata;
 
-        $logger->info('LiqPay callback received', ['status' => $status, 'order_id' => $orderId]);
+            $userId = (int) ($metadata->user_id ?? 0);
+            $days = (int) ($metadata->days ?? 30);
 
-        if (!in_array($status, ['success', 'sandbox'])) {
-            return new Response('OK');
+            $logger->info('Stripe payment completed', ['user_id' => $userId, 'days' => $days]);
+
+            $user = $this->premiumService->getUserById($userId);
+            if ($user) {
+                $this->premiumService->activate($user, $days);
+                $logger->info('Premium activated', ['user_id' => $userId, 'days' => $days]);
+            } else {
+                $logger->error('Stripe webhook: user not found', ['user_id' => $userId]);
+            }
         }
-
-        $parts = explode('_', $orderId);
-        if (count($parts) < 3 || $parts[0] !== 'premium') {
-            return new Response('Invalid order_id', 400);
-        }
-
-        $userId = (int) $parts[1];
-        $user = $this->premiumService->getUserById($userId);
-
-        if (!$user) {
-            $logger->error('LiqPay callback: user not found', ['user_id' => $userId]);
-            return new Response('User not found', 404);
-        }
-
-        $amount = (float) ($decoded['amount'] ?? 0);
-        $days = $this->getDaysByAmount($amount);
-
-        $this->premiumService->activate($user, $days);
-        $logger->info('Premium activated', ['user_id' => $userId, 'days' => $days]);
 
         return new Response('OK');
     }
@@ -131,25 +120,26 @@ class PremiumController extends AbstractController
 
     #[Route('/result', name: 'app_premium_result')]
     #[IsGranted('ROLE_USER')]
-    public function result(): Response
+    public function result(Request $request): Response
     {
         $user = $this->getUser();
 
-        if ($user->isPremium()) {
-            $this->addFlash('success', 'Premium успішно активовано! Дякуємо за підтримку.');
-        } else {
+        if (!$user->isPremium()) {
+            $sessionId = $request->query->get('session_id');
+            if ($sessionId) {
+                $session = $this->stripeService->getSession($sessionId);
+                if ($session && $session->payment_status === 'paid') {
+                    $days = (int) ($session->metadata->days ?? 30);
+                    $this->premiumService->activate($user, $days);
+                    $this->addFlash('success', 'Premium успішно активовано! Дякуємо за підтримку.');
+                    return $this->redirectToRoute('app_premium');
+                }
+            }
             $this->addFlash('info', 'Оплата обробляється. Premium буде активовано найближчим часом.');
+        } else {
+            $this->addFlash('success', 'Premium успішно активовано! Дякуємо за підтримку.');
         }
 
         return $this->redirectToRoute('app_premium');
-    }
-
-    private function getDaysByAmount(float $amount): int
-    {
-        return match (true) {
-            $amount >= 799 => 365,
-            $amount >= 249 => 90,
-            default => 30,
-        };
     }
 }

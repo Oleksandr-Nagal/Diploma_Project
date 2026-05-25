@@ -7,6 +7,7 @@
     .checkout-container {
         max-width: 500px;
         margin: 2rem auto;
+        text-align: center;
     }
     .checkout-card {
         background: var(--gf-card);
@@ -14,75 +15,16 @@
         border-radius: 12px;
         padding: 2rem;
     }
-    .checkout-summary {
-        background: var(--gf-darker);
-        border-radius: 8px;
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-    }
-    .checkout-summary .plan-name {
-        font-size: 1.2rem;
-        font-weight: 600;
-        color: var(--gf-text);
-    }
-    .checkout-summary .plan-price {
-        font-size: 2rem;
-        font-weight: 700;
-        color: var(--gf-primary);
-    }
-    .checkout-card form {
-        display: flex;
-        justify-content: center;
-    }
-    .checkout-card form input[type="image"] {
-        border-radius: 8px;
-        transition: transform 0.2s;
-    }
-    .checkout-card form input[type="image"]:hover {
-        transform: scale(1.02);
-    }
-    .security-note {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        color: var(--gf-muted);
-        font-size: 0.85rem;
-        margin-top: 1.5rem;
-        justify-content: center;
-    }
-    .security-note i {
-        color: var(--gf-success);
-    }
 </style>
 {% endblock %}
 
 {% block body %}
 <div class="checkout-container">
-    <a href="{{ path('app_premium') }}" class="btn btn-sm btn-outline-secondary mb-3">
-        <i class="fas fa-arrow-left"></i> Назад
-    </a>
-
     <div class="checkout-card">
-        <h3 class="text-center mb-4">Оформлення підписки</h3>
-
-        <div class="checkout-summary">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <div class="plan-name">Premium — {{ plan.label }}</div>
-                    <div class="small" style="color: var(--gf-text);">{{ plan.days }} днів доступу</div>
-                </div>
-                <div class="plan-price">{{ plan.price }} грн</div>
-            </div>
-        </div>
-
-        <div class="text-center">
-            {{ paymentForm|raw }}
-        </div>
-
-        <div class="security-note">
-            <i class="fas fa-lock"></i>
-            <span>Безпечна оплата через LiqPay. Ми не зберігаємо дані вашої картки.</span>
-        </div>
+        <i class="fas fa-spinner fa-spin fa-3x mb-3" style="color:var(--gf-primary)"></i>
+        <h4>Перенаправлення на сторінку оплати...</h4>
+        <p style="color:var(--gf-muted)">Якщо перенаправлення не відбулось автоматично, натисніть кнопку нижче.</p>
+        <a href="{{ path('app_premium') }}" class="btn btn-gf-outline">Повернутись</a>
     </div>
 </div>
 {% endblock %}
