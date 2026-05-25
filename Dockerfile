@@ -1,4 +1,3 @@
-
 FROM node:20-alpine AS frontend
 
 WORKDIR /app
@@ -53,4 +52,5 @@ CMD rm -f /etc/apache2/mods-enabled/mpm_event.* /etc/apache2/mods-enabled/mpm_wo
     && sed -i "s/\${PORT}/${PORT:-8080}/g" /etc/apache2/sites-available/000-default.conf \
     && echo "Listen ${PORT:-8080}" > /etc/apache2/ports.conf \
     && php bin/console doctrine:schema:update --force --no-interaction \
+    && php bin/console doctrine:fixtures:load --append --no-interaction \
     && apache2-foreground

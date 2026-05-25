@@ -10,6 +10,7 @@
         "amphp/http-client": "4.2.1",
         "cloudinary/cloudinary_php": "^3.1",
         "doctrine/doctrine-bundle": "^2.18",
+        "doctrine/doctrine-fixtures-bundle": "^3.6",
         "doctrine/doctrine-migrations-bundle": "^3.7",
         "doctrine/orm": "^3.6",
         "knpuniversity/oauth2-client-bundle": "^2.19",
@@ -88,7 +89,6 @@
         }
     },
     "require-dev": {
-        "doctrine/doctrine-fixtures-bundle": "^3.6",
         "phpunit/phpunit": "^11.5",
         "symfony/browser-kit": "7.0.*",
         "symfony/css-selector": "7.0.*",
