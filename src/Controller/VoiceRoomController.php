@@ -31,10 +31,7 @@ class VoiceRoomController extends AbstractController
             'room_id' => $lobby->getId(),
             'user_id' => $this->getUser()->getId(),
             'user_name' => $this->getUser()->getUsername(),
-            'ice_servers' => [
-                ['urls' => 'stun:stun.l.google.com:19302'],
-                ['urls' => 'stun:stun1.l.google.com:19302'],
-            ],
+            'ice_servers' => $this->getIceServers(),
         ]);
     }
 
@@ -55,6 +52,28 @@ class VoiceRoomController extends AbstractController
         ));
 
         return new JsonResponse(['status' => 'ok']);
+    }
+
+    private function getIceServers(): array
+    {
+        $servers = [
+            ['urls' => 'stun:stun.l.google.com:19302'],
+            ['urls' => 'stun:stun1.l.google.com:19302'],
+        ];
+
+        $turnUrl = $_ENV['TURN_SERVER_URL'] ?? null;
+        $turnUser = $_ENV['TURN_SERVER_USERNAME'] ?? null;
+        $turnCred = $_ENV['TURN_SERVER_CREDENTIAL'] ?? null;
+
+        if ($turnUrl && $turnUser && $turnCred) {
+            $servers[] = [
+                'urls' => $turnUrl,
+                'username' => $turnUser,
+                'credential' => $turnCred,
+            ];
+        }
+
+        return $servers;
     }
 
     private function topic(int $lobbyId): string

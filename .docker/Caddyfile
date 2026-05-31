@@ -1,0 +1,18 @@
+{
+	auto_https off
+	admin off
+}
+
+:3000 {
+	route {
+		mercure {
+			publisher_jwt {env.MERCURE_PUBLISHER_JWT_KEY} HS256
+			subscriber_jwt {env.MERCURE_SUBSCRIBER_JWT_KEY} HS256
+			cors_origins *
+			publish_origins *
+			anonymous
+		}
+
+		respond /healthz 200
+	}
+}

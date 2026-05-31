@@ -18,11 +18,18 @@ RUN apt-get update && apt-get install -y \
     libzip-dev \
     unzip \
     git \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 RUN docker-php-ext-install pdo_mysql intl opcache zip
 
-RUN a2enmod rewrite
+RUN a2enmod rewrite proxy proxy_http proxy_wstunnel
+
+RUN curl -L https://github.com/dunglas/mercure/releases/download/v0.16.3/mercure_Linux_x86_64.tar.gz -o /tmp/mercure.tar.gz \
+    && cd /tmp && tar xzf mercure.tar.gz \
+    && mv /tmp/mercure /usr/local/bin/mercure \
+    && chmod +x /usr/local/bin/mercure \
+    && rm /tmp/mercure.tar.gz
 
 COPY .docker/apache.conf /etc/apache2/sites-available/000-default.conf
 
@@ -48,9 +55,7 @@ RUN mkdir -p var/cache var/log && chown -R www-data:www-data var/
 
 EXPOSE 8080
 
-CMD rm -f /etc/apache2/mods-enabled/mpm_event.* /etc/apache2/mods-enabled/mpm_worker.* \
-    && sed -i "s/\${PORT}/${PORT:-8080}/g" /etc/apache2/sites-available/000-default.conf \
-    && echo "Listen ${PORT:-8080}" > /etc/apache2/ports.conf \
-    && php bin/console doctrine:schema:update --force --no-interaction \
-    && php bin/console doctrine:fixtures:load --append --no-interaction \
-    && apache2-foreground
+COPY .docker/start.sh /usr/local/bin/start.sh
+RUN chmod +x /usr/local/bin/start.sh
+
+CMD ["/usr/local/bin/start.sh"]

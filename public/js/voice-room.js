@@ -25,7 +25,7 @@
                 throw err;
             }
 
-            const url = new URL(this.config.mercure_url);
+            const url = new URL(this.config.mercure_url, window.location.origin);
             url.searchParams.append('topic', this.config.topic);
             url.searchParams.append('authorization', this.config.mercure_token);
 
