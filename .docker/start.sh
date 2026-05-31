@@ -8,6 +8,7 @@ echo "Listen ${PORT:-8080}" > /etc/apache2/ports.conf
 
 php bin/console doctrine:schema:update --force --no-interaction
 php bin/console doctrine:fixtures:load --append --no-interaction
+php bin/console app:update-games --no-interaction
 
 export MERCURE_PUBLISHER_JWT_KEY="${MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}"
 export MERCURE_SUBSCRIBER_JWT_KEY="${MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}"

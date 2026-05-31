@@ -29,7 +29,8 @@ class UpdateGamesFromSteamCommand extends Command
         $updated = 0;
 
         foreach ($games as $game) {
-            $needsUpdate = !$game->getImageUrl() || !$game->getDescription();
+            $needsImageFromRawg = !$game->getSteamAppId();
+            $needsUpdate = !$game->getImageUrl() || !$game->getDescription() || $needsImageFromRawg;
             if (!$needsUpdate) {
                 continue;
             }
@@ -52,17 +53,15 @@ class UpdateGamesFromSteamCommand extends Command
                 }
             }
 
-            if (!$game->getImageUrl()) {
-                $image = $this->steamService->findImageByName($game->getName());
-                if ($image) {
-                    $game->setImageUrl($image);
-                    $updated++;
-                    $io->text('  -> RAWG image OK');
-                } else {
-                    $io->text('  -> No image found');
-                }
-                usleep(300000);
+            $image = $this->steamService->findImageByName($game->getName());
+            if ($image) {
+                $game->setImageUrl($image);
+                $updated++;
+                $io->text('  -> RAWG image OK');
+            } else {
+                $io->text('  -> No image found');
             }
+            usleep(300000);
         }
 
         $this->em->flush();

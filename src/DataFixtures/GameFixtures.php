@@ -18,19 +18,19 @@ class GameFixtures extends Fixture
                 'image' => 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/730/header.jpg'],
             ['name' => 'Valorant', 'genre' => 'FPS', 'maxPlayers' => 5, 'steamAppId' => null,
                 'description' => 'Тактичний шутер 5v5 від Riot Games з унікальними агентами та здібностями. Точна стрільба і командна стратегія.',
-                'image' => 'https://cdn1.epicgames.com/offer/cbd5b3d310a54b12bf3fe8c41994174f/EGS_VALORANT_RiotGames_S1_2560x1440-b88adde6a97e0a58ccf17b80ffe01542'],
+                'image' => 'https://media.rawg.io/media/games/b11/b11127b9ee3c3701bd15b9af3286d20e.jpg'],
             ['name' => 'Overwatch 2', 'genre' => 'FPS', 'maxPlayers' => 5, 'steamAppId' => null,
                 'description' => 'Командний шутер з героями від Blizzard. 5v5 бої з унікальними персонажами та їхніми здібностями.',
-                'image' => 'https://blz-contentstack-images.akamaized.net/v3/assets/blt9c12f249ac15c7ec/bltbcf2689c29fa39eb/622906a991f4232f0085d3cc/Masthead_Overwatch2_702x400.jpg'],
+                'image' => 'https://media.rawg.io/media/games/95a/95a10817d1fc648cff1153f3fa8ef6c5.jpg'],
             ['name' => 'Rainbow Six Siege', 'genre' => 'FPS', 'maxPlayers' => 5, 'steamAppId' => 359550,
                 'description' => 'Тактичний шутер від Ubisoft з руйнуванням оточення. Оператори з унікальними гаджетами, напруга кожного раунду.',
                 'image' => 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/359550/header.jpg'],
             ['name' => 'Call of Duty: Warzone', 'genre' => 'FPS', 'maxPlayers' => 4, 'steamAppId' => null,
                 'description' => 'Безкоштовний Battle Royale від Activision на 150 гравців. Динамічні бої та постійні оновлення.',
-                'image' => 'https://www.callofduty.com/content/dam/atvi/callofduty/cod-touchui/blog/hero/mw-wz/WZ-Season-Three-background.jpg'],
+                'image' => 'https://media.rawg.io/media/games/7e3/7e327a055bedb9b6d1be86593bef473d.jpg'],
             ['name' => 'Escape from Tarkov', 'genre' => 'FPS', 'maxPlayers' => 5, 'steamAppId' => null,
                 'description' => 'Хардкорний шутер-виживання з реалістичною балістикою. Рейди, лут, прокачка персонажа.',
-                'image' => 'https://www.escapefromtarkov.com/uploads/media/default/0001/01/thumb_326_default_header.jpeg'],
+                'image' => 'https://media.rawg.io/media/games/a9a/a9ab53644b92698b18957a362c99b4e2.jpg'],
             ['name' => 'Team Fortress 2', 'genre' => 'FPS', 'maxPlayers' => 12, 'steamAppId' => 440,
                 'description' => 'Класичний безкоштовний командний шутер від Valve з 9 унікальними класами та мультяшною графікою.',
                 'image' => 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/440/header.jpg'],
@@ -43,24 +43,24 @@ class GameFixtures extends Fixture
                 'image' => 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/570/header.jpg'],
             ['name' => 'League of Legends', 'genre' => 'MOBA', 'maxPlayers' => 5, 'steamAppId' => null,
                 'description' => 'Найпопулярніша MOBA у світі від Riot Games. 160+ чемпіонів, ранковий режим, кіберспорт.',
-                'image' => 'https://cdn1.epicgames.com/offer/24b9b5e323bc40eea252a10cdd3b2f10/EGS_LeagueofLegends_RiotGames_S1_2560x1440-80471666c140f790f28dff68d72c384b'],
+                'image' => 'https://media.rawg.io/media/games/78b/78bc81e247fc7e77af700cbd632a9297.jpg'],
             ['name' => 'Smite 2', 'genre' => 'MOBA', 'maxPlayers' => 5, 'steamAppId' => null,
                 'description' => 'MOBA від третьої особи з богами та міфічними істотами. Унікальний геймплей від Hi-Rez Studios.',
-                'image' => 'https://webcdn.hirezstudios.com/smite2/wp-content/uploads/2024/01/SMITE_2_logo_stacked_color_white_1.png'],
+                'image' => 'https://media.rawg.io/media/screenshots/41a/41aa481f2cd38f8ebbbd06cfc8780c34.jpg'],
 
             ['name' => 'Apex Legends', 'genre' => 'Battle Royale', 'maxPlayers' => 3, 'steamAppId' => 1172470,
                 'description' => 'Динамічний Battle Royale на 60 гравців з легендами та їхніми здібностями. Швидкий темп і командна гра.',
                 'image' => 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1172470/header.jpg'],
             ['name' => 'Fortnite', 'genre' => 'Battle Royale', 'maxPlayers' => 4, 'steamAppId' => null,
                 'description' => 'Battle Royale з будівництвом на 100 гравців. Регулярні оновлення, колаборації та творчий режим.',
-                'image' => 'https://cdn2.unrealengine.com/fortnite-chapter-4-season-4-keyart-3840x2160-3840x2160-2a2b41c37baa.jpg'],
+                'image' => 'https://media.rawg.io/media/games/dcb/dcbb67f371a9a28ea38ffd73ee0f53f3.jpg'],
             ['name' => 'PUBG: Battlegrounds', 'genre' => 'Battle Royale', 'maxPlayers' => 4, 'steamAppId' => 578080,
                 'description' => 'Класичний Battle Royale на 100 гравців. Реалістична стрільба, величезні карти, соло або командна гра.',
                 'image' => 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/578080/header.jpg'],
 
             ['name' => 'Minecraft', 'genre' => 'Survival', 'maxPlayers' => 20, 'steamAppId' => null,
                 'description' => 'Пісочниця без обмежень. Будуйте, досліджуйте, виживайте у нескінченному блоковому світі з друзями.',
-                'image' => 'https://www.minecraft.net/content/dam/games/minecraft/key-art/MC-Vanilla_The-Wild-Update_key-art_540x300.jpg'],
+                'image' => 'https://media.rawg.io/media/games/b4e/b4e4c73d5aa4ec66bbf75375c4847a2b.jpg'],
             ['name' => 'Rust', 'genre' => 'Survival', 'maxPlayers' => 10, 'steamAppId' => 252490,
                 'description' => 'Хардкорне PvP виживання. Збирайте ресурси, будуйте базу, захищайтесь від інших гравців.',
                 'image' => 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/252490/header.jpg'],
@@ -79,7 +79,7 @@ class GameFixtures extends Fixture
 
             ['name' => 'World of Warcraft', 'genre' => 'MMO', 'maxPlayers' => 40, 'steamAppId' => null,
                 'description' => 'Легендарна MMORPG від Blizzard з 20-річною історією. Рейди, данжони, PvP арени, епічний сюжет.',
-                'image' => 'https://blz-contentstack-images.akamaized.net/v3/assets/blt3452e3b114fab0cd/bltd4aaa9d498b2c508/WoW_The_War_Within_Key_Art_16x9.webp'],
+                'image' => 'https://media.rawg.io/media/games/0d9/0d930ea604ee240c5af30c58f73ddf48.jpg'],
             ['name' => 'Final Fantasy XIV', 'genre' => 'MMO', 'maxPlayers' => 8, 'steamAppId' => 39210,
                 'description' => 'Популярна MMORPG від Square Enix з неймовірним сюжетом, рейдами та крафтингом.',
                 'image' => 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/39210/header.jpg'],
@@ -88,14 +88,14 @@ class GameFixtures extends Fixture
                 'image' => 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1599340/header.jpg'],
             ['name' => 'Path of Exile 2', 'genre' => 'MMO', 'maxPlayers' => 6, 'steamAppId' => null,
                 'description' => 'Хардкорне Action RPG з безмежним крафтингом білдів. Духовний наступник Diablo 2.',
-                'image' => 'https://web.poecdn.com/protected/image/poe2/hero/PoE2-Open-Graph.jpg'],
+                'image' => 'https://media.rawg.io/media/games/401/4010e56adceb7db58ba42d1189796d5e.jpg'],
 
             ['name' => 'Rocket League', 'genre' => 'Sports', 'maxPlayers' => 4, 'steamAppId' => 252950,
                 'description' => 'Футбол на реактивних машинах. Швидкий аркадний геймплей з високою стелею майстерності.',
                 'image' => 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/252950/header.jpg'],
             ['name' => 'EA FC 25', 'genre' => 'Sports', 'maxPlayers' => 2, 'steamAppId' => null,
                 'description' => 'Найпопулярніший футбольний симулятор. Ultimate Team, кар\'єра, онлайн-матчі з друзями.',
-                'image' => 'https://media.contentapi.ea.com/content/dam/ea/fc/fc-25/common/featured-image/fc25-featured-image-16x9.jpg.adapt.crop191x100.1200w.jpg'],
+                'image' => 'https://media.rawg.io/media/screenshots/928/9289953b354ac641e3f1b83d43e18521.jpg'],
 
             ['name' => 'Civilization VI', 'genre' => 'Strategy', 'maxPlayers' => 12, 'steamAppId' => 289070,
                 'description' => 'Покрокова стратегія — побудуйте цивілізацію від стародавності до космічної ери.',
@@ -131,8 +131,7 @@ class GameFixtures extends Fixture
         foreach ($games as $data) {
             $existing = $gameRepo->findOneBy(['name' => $data['name']]);
             if ($existing) {
-                // Update missing data
-                if (!$existing->getImageUrl() && !empty($data['image'])) {
+                if (!empty($data['image']) && (!$existing->getImageUrl() || !$data['steamAppId'])) {
                     $existing->setImageUrl($data['image']);
                 }
                 if ((!$existing->getDescription() || strlen($existing->getDescription()) < 30) && !empty($data['description'])) {
