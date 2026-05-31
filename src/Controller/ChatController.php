@@ -28,6 +28,7 @@ class ChatController extends AbstractController
             'lobby' => $lobby,
             'messages' => array_reverse($messages),
             'emojis' => EmojiService::getEmojis($user->isPremium()),
+            'allStickers' => EmojiService::PREMIUM_STICKERS,
         ]);
     }
 
@@ -140,6 +141,7 @@ class ChatController extends AbstractController
             'otherUser' => $user,
             'messages' => array_reverse($messages),
             'emojis' => EmojiService::getEmojis($currentUser->isPremium()),
+            'allStickers' => EmojiService::PREMIUM_STICKERS,
         ]);
     }
 
@@ -247,6 +249,7 @@ class ChatController extends AbstractController
         return $this->render('chat/events.html.twig', [
             'events' => $event,
             'messages' => array_reverse($messages),
+            'allStickers' => EmojiService::PREMIUM_STICKERS,
         ]);
     }
 

@@ -140,7 +140,7 @@ function getLastMessageId() {
     return parseInt(msgs[msgs.length - 1].dataset.id) || 0;
 }
 
-const stickerData = {{ emojis.stickers is defined ? emojis.stickers|json_encode|raw : '{}' }};
+const stickerData = {{ allStickers|json_encode|raw }};
 function renderContentWithStickers(content) {
     return content.replace(/\[sticker:([a-z_]+)\]/g, (match, code) => {
         const s = stickerData[code];

@@ -125,6 +125,15 @@ const pollUrl = '{{ path("app_event_chat_poll", {id: event.id}) }}';
 function scrollToBottom() { chatBox.scrollTop = chatBox.scrollHeight; }
 scrollToBottom();
 
+const stickerData = {{ allStickers|json_encode|raw }};
+function renderContentWithStickers(content) {
+    return content.replace(/\[sticker:([a-z_]+)\]/g, (match, code) => {
+        const s = stickerData[code];
+        if (!s) return match;
+        return `<div class="chat-sticker" title="${s.label}"><div class="chat-sticker-inner" style="background:linear-gradient(135deg,${s.color1},${s.color2});"><i class="fas ${s.icon}"></i></div></div>`;
+    });
+}
+
 function getLastMessageId() {
     const msgs = chatBox.querySelectorAll('.chat-message[data-id]');
     if (msgs.length === 0) return 0;
@@ -142,7 +151,7 @@ function renderMessage(msg) {
     if (msg.type === 'voice' && msg.attachmentUrl) {
         body = renderVoiceBubble(msg.attachmentUrl);
     } else {
-        body = msg.content;
+        body = renderContentWithStickers(msg.content);
         if (msg.attachmentUrl) {
             if (msg.type === 'image') {
                 body += `<div class="mt-2"><img src="${msg.attachmentUrl}" style="max-width:200px;border-radius:8px;cursor:zoom-in;" alt="Зображення"></div>`;
