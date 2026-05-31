@@ -78,9 +78,6 @@ test:integration:
   tags: []
   needs:
     - build:composer
-  before_script:
-    - $phpIni = php -r "echo php_ini_loaded_file();"
-    - Add-Content $phpIni "extension=pdo_sqlite"
   script:
     - Copy-Item .env.test .env
     - php bin/phpunit --testsuite Integration --testdox
