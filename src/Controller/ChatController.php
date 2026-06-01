@@ -337,7 +337,7 @@ class ChatController extends AbstractController
             'senderAvatar' => $m->getSender()->getAvatar(),
             'type' => $m->getType(),
             'attachmentUrl' => $m->getAttachmentUrl(),
-            'createdAt' => $m->getCreatedAt()->format('H:i'),
+            'createdAt' => $m->getCreatedAt()->format('c'),
         ];
     }
 

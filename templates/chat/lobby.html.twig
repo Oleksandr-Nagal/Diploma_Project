@@ -208,13 +208,19 @@ function renderMessage(msg) {
         }
     }
 
+    let timeStr = msg.createdAt;
+    if (timeStr.includes('T')) {
+        const d = new Date(timeStr);
+        timeStr = d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    }
+
     const html = `
         <div class="chat-message ${isOwn ? 'own' : ''}" data-id="${msg.id}">
             ${!isOwn ? `<div>${avatarHtml}</div>` : ''}
             <div class="chat-bubble">
                 ${!isOwn ? `<small style="color:var(--gf-primary);font-weight:600;">${msg.senderName}</small><br>` : ''}
                 ${body}
-                <div class="mt-1"><small style="color:var(--gf-muted);font-size:0.75rem;">${msg.createdAt}</small></div>
+                <div class="mt-1"><small style="color:var(--gf-muted);font-size:0.75rem;">${timeStr}</small></div>
             </div>
         </div>`;
 
