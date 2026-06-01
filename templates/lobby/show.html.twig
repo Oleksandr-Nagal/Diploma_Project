@@ -68,6 +68,12 @@
                     </form>
                 {% endif %}
 
+                {% if is_granted('ROLE_MODERATOR') and not isOwner and lobby.status != 'closed' %}
+                    <form action="{{ path('app_moderator_close_lobby', {id: lobby.id}) }}" method="post" onsubmit="return confirm('[Модерація] Ви впевнені, що хочете примусово закрити це лобі?')">
+                        <button class="btn btn-gf-danger"><i class="fas fa-gavel me-1"></i> Закрити лобі (Модератор)</button>
+                    </form>
+                {% endif %}
+
                 {% if not isOwner %}
                     <button class="btn btn-sm" style="color:var(--gf-danger);background:transparent;border:1px solid var(--gf-danger);border-radius:8px;font-weight:600;" type="button" data-bs-toggle="modal" data-bs-target="#reportLobbyOwner">
                         <i class="fas fa-flag me-1"></i> Скарга
