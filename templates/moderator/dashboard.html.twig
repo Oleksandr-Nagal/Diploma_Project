@@ -50,6 +50,12 @@
             <p style="color:var(--gf-muted)">Перегляд та закриття лобі</p>
         </a>
     </div>
+    <div class="col-md-4">
+        <a href="{{ path('app_events') }}" class="card-gf d-block text-decoration-none">
+            <h4 style="color:var(--gf-text)"><i class="fas fa-calendar-alt me-2" style="color:var(--gf-warning)"></i>Події</h4>
+            <p style="color:var(--gf-muted)">Перегляд та видалення подій</p>
+        </a>
+    </div>
 </div>
 
 {% if recentActions|length > 0 %}

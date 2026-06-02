@@ -59,6 +59,12 @@
                         <button class="btn btn-gf-danger"><i class="fas fa-sign-out me-1"></i> Покинути подію</button>
                     </form>
                 {% endif %}
+
+                {% if is_granted('ROLE_MODERATOR') and not isOrganizer %}
+                    <form action="{{ path('app_moderator_close_event', {id: event.id}) }}" method="post" onsubmit="return confirm('[Модерація] Ви впевнені, що хочете видалити цю подію?')">
+                        <button class="btn btn-gf-danger"><i class="fas fa-gavel me-1"></i> Видалити подію (Модератор)</button>
+                    </form>
+                {% endif %}
             </div>
         </div>
     </div>

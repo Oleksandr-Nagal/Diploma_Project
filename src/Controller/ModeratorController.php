@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\ChatMessage;
+use App\Entity\GameEvent;
 use App\Entity\Lobby;
 use App\Entity\Report;
 use App\Entity\Review;
@@ -80,6 +81,16 @@ class ModeratorController extends AbstractController
         $em->flush();
 
         $this->addFlash('success', 'Лобі "' . $lobby->getTitle() . '" закрито.');
+        return $this->redirectToRoute('app_moderator');
+    }
+
+    #[Route('/event/{id}/close', name: 'app_moderator_close_event', methods: ['POST'])]
+    public function closeEvent(GameEvent $event, EntityManagerInterface $em): Response
+    {
+        $em->remove($event);
+        $em->flush();
+
+        $this->addFlash('success', 'Подію "' . $event->getTitle() . '" видалено.');
         return $this->redirectToRoute('app_moderator');
     }
 
