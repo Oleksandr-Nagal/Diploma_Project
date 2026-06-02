@@ -162,6 +162,13 @@
             box-shadow: 0 0 0 0.2rem rgba(108, 92, 231, 0.15);
         }
         .form-control::placeholder, textarea.form-control::placeholder { color: var(--gf-muted); opacity: 0.8; }
+        .form-control::-webkit-calendar-picker-indicator {
+            filter: invert(0.7) sepia(1) saturate(2) hue-rotate(210deg);
+            cursor: pointer;
+        }
+        [data-theme="light"] .form-control::-webkit-calendar-picker-indicator {
+            filter: none;
+        }
 
         .form-select {
             background-color: var(--gf-input-bg);

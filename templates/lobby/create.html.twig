@@ -39,3 +39,36 @@
     </div>
 </div>
 {% endblock %}
+
+{% block javascripts %}
+<script>
+(function() {
+    const scheduled = document.querySelector('input[name="lobby[scheduledAt]"]');
+    if (!scheduled) return;
+
+    const form = scheduled.closest('form');
+
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    scheduled.min = now.toISOString().slice(0, 16);
+
+    form.addEventListener('submit', (e) => {
+        if (!scheduled.value) return;
+
+        const val = new Date(scheduled.value);
+        const nowCheck = new Date();
+
+        if (val < nowCheck) {
+            e.preventDefault();
+            alert('Дата не може бути у минулому.');
+            return;
+        }
+        if (val.getFullYear() > 2030) {
+            e.preventDefault();
+            alert('Рік не може перевищувати 2030.');
+            return;
+        }
+    });
+})();
+</script>
+{% endblock %}

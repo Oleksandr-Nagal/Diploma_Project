@@ -32,13 +32,13 @@
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label class="form-label">Початок</label>
-                            <input type="datetime-local" name="start_at" class="form-control" required>
+                            <input type="datetime-local" name="start_at" id="startAt" class="form-control" required max="2030-12-31T23:59">
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label class="form-label">Кінець (опціонально)</label>
-                            <input type="datetime-local" name="end_at" class="form-control">
+                            <input type="datetime-local" name="end_at" id="endAt" class="form-control" max="2030-12-31T23:59">
                         </div>
                     </div>
                 </div>
@@ -52,4 +52,60 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+(function() {
+    const startAt = document.getElementById('startAt');
+    const endAt = document.getElementById('endAt');
+    const form = startAt.closest('form');
+
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    const nowStr = now.toISOString().slice(0, 16);
+    startAt.min = nowStr;
+    endAt.min = nowStr;
+
+    startAt.addEventListener('change', () => {
+        if (startAt.value) {
+            endAt.min = startAt.value;
+            if (endAt.value && endAt.value <= startAt.value) {
+                endAt.value = '';
+            }
+        }
+    });
+
+    form.addEventListener('submit', (e) => {
+        const startVal = new Date(startAt.value);
+        const nowCheck = new Date();
+
+        if (startVal < nowCheck) {
+            e.preventDefault();
+            alert('Дата початку не може бути у минулому.');
+            return;
+        }
+
+        if (startVal.getFullYear() > 2030) {
+            e.preventDefault();
+            alert('Рік не може перевищувати 2030.');
+            return;
+        }
+
+        if (endAt.value) {
+            const endVal = new Date(endAt.value);
+            if (endVal <= startVal) {
+                e.preventDefault();
+                alert('Дата кінця повинна бути пізніше дати початку.');
+                return;
+            }
+            if (endVal.getFullYear() > 2030) {
+                e.preventDefault();
+                alert('Рік кінця не може перевищувати 2030.');
+                return;
+            }
+        }
+    });
+})();
+</script>
 {% endblock %}

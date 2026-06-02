@@ -87,6 +87,7 @@ class LobbyType extends AbstractType
                 'label' => 'Запланувати на',
                 'required' => false,
                 'widget' => 'single_text',
+                'attr' => ['max' => '2030-12-31T23:59'],
             ]);
     }
 
