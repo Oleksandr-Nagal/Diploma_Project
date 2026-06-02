@@ -236,26 +236,42 @@ class ChatController extends AbstractController
         ]);
     }
 
-    #[Route('/events/{id}/chat', name: 'app_event_chat')]
-    public function eventChat(GameEvent $event, ChatMessageRepository $chatRepo): Response
+    #[Route('/events/{id}/chat', name: 'app_event_chat', requirements: ['id' => '\d+'])]
+    public function eventChat(int $id, \App\Repository\GameEventRepository $eventRepo, ChatMessageRepository $chatRepo): Response
     {
+        $event = $eventRepo->find($id);
+        if (!$event) {
+            $this->addFlash('error', 'Подія не знайдена або була видалена.');
+            return $this->redirectToRoute('app_events');
+        }
+
         $messages = $chatRepo->createQueryBuilder('m')
-            ->where('m.events = :event')
+            ->where('m.event = :event')
             ->setParameter('event', $event)
             ->orderBy('m.createdAt', 'DESC')
             ->setMaxResults(50)
             ->getQuery()->getResult();
 
+        $user = $this->getUser();
         return $this->render('chat/events.html.twig', [
-            'events' => $event,
+            'event' => $event,
             'messages' => array_reverse($messages),
+            'emojis' => EmojiService::getEmojis($user->isPremium()),
             'allStickers' => EmojiService::PREMIUM_STICKERS,
         ]);
     }
 
-    #[Route('/events/{id}/chat/send', name: 'app_event_chat_send', methods: ['POST'])]
-    public function sendEventMessage(GameEvent $event, Request $request, EntityManagerInterface $em, CloudinaryService $cloudinary): Response
+    #[Route('/events/{id}/chat/send', name: 'app_event_chat_send', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function sendEventMessage(int $id, \App\Repository\GameEventRepository $eventRepo, Request $request, EntityManagerInterface $em, CloudinaryService $cloudinary): Response
     {
+        $event = $eventRepo->find($id);
+        if (!$event) {
+            if ($request->isXmlHttpRequest()) {
+                return new JsonResponse(['status' => 'error', 'message' => 'Event not found'], 404);
+            }
+            return $this->redirectToRoute('app_events');
+        }
+
         $content = trim($request->request->get('message', ''));
         $voiceFile = $request->files->get('voice');
         $attachment = $request->files->get('attachment');
@@ -306,13 +322,18 @@ class ChatController extends AbstractController
         return $this->redirectToRoute('app_event_chat', ['id' => $event->getId()]);
     }
 
-    #[Route('/events/{id}/chat/poll', name: 'app_event_chat_poll')]
-    public function eventPoll(GameEvent $event, Request $request, ChatMessageRepository $chatRepo): JsonResponse
+    #[Route('/events/{id}/chat/poll', name: 'app_event_chat_poll', requirements: ['id' => '\d+'])]
+    public function eventPoll(int $id, \App\Repository\GameEventRepository $eventRepo, Request $request, ChatMessageRepository $chatRepo): JsonResponse
     {
+        $event = $eventRepo->find($id);
+        if (!$event) {
+            return new JsonResponse(['status' => 'error', 'message' => 'Event not found'], 404);
+        }
+
         $afterId = (int) $request->query->get('after', 0);
 
         $qb = $chatRepo->createQueryBuilder('m')
-            ->where('m.events = :event')
+            ->where('m.event = :event')
             ->setParameter('event', $event)
             ->orderBy('m.createdAt', 'ASC');
 

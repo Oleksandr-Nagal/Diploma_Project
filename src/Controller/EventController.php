@@ -32,6 +32,7 @@ class EventController extends AbstractController
             $event->setTitle($request->request->get('title'));
             $event->setDescription($request->request->get('description'));
             $event->setOrganizer($this->getUser());
+            $event->addParticipant($this->getUser());
             $event->setGame($em->getReference(Game::class, $request->request->get('game_id')));
             $event->setStartAt(new \DateTime($request->request->get('start_at')));
             $event->setMaxParticipants((int) $request->request->get('max_participants', 10));
@@ -53,7 +54,7 @@ class EventController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'app_event_show')]
+    #[Route('/{id}', name: 'app_event_show', requirements: ['id' => '\d+'])]
     public function show(int $id, GameEventRepository $eventRepo): Response
     {
         $eventRepo->deleteExpiredEvents();
@@ -71,7 +72,7 @@ class EventController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/join', name: 'app_event_join', methods: ['POST'])]
+    #[Route('/{id}/join', name: 'app_event_join', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function join(int $id, GameEventRepository $eventRepo, EntityManagerInterface $em): Response
     {
         $eventRepo->deleteExpiredEvents();
@@ -94,7 +95,7 @@ class EventController extends AbstractController
         return $this->redirectToRoute('app_event_show', ['id' => $event->getId()]);
     }
 
-    #[Route('/{id}/leave', name: 'app_event_leave', methods: ['POST'])]
+    #[Route('/{id}/leave', name: 'app_event_leave', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function leave(int $id, GameEventRepository $eventRepo, EntityManagerInterface $em): Response
     {
         $eventRepo->deleteExpiredEvents();

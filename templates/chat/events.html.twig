@@ -27,7 +27,7 @@
                     {% if msg.type == 'voice' and msg.attachmentUrl %}
                         <audio controls preload="metadata" src="{{ msg.attachmentUrl }}" style="max-width:260px;"></audio>
                     {% else %}
-                        {{ msg.content }}
+                        {{ msg.content|render_stickers }}
                         {% if msg.attachmentUrl %}
                             <div class="mt-2">
                                 {% if msg.type == 'image' %}
@@ -83,6 +83,9 @@
             </div>
             <form id="chatForm" class="d-flex gap-2 p-3 align-items-center" enctype="multipart/form-data" style="margin:0;">
                 <input type="text" name="message" id="chatInput" class="form-control" placeholder="Написати повідомлення..." autocomplete="off">
+                <button type="button" id="emojiBtn" class="btn btn-gf-outline" aria-label="Емодзі" title="Емодзі">
+                    <i class="fas fa-face-smile"></i>
+                </button>
                 <label class="btn btn-gf-outline" style="cursor:pointer;" aria-label="Прикріпити файл" role="button">
                     <i class="fas fa-paperclip"></i>
                     <input type="file" name="attachment" id="fileInput" style="display:none;" accept="image/*,.doc,.docx" aria-label="Вибрати файл">
@@ -109,6 +112,7 @@
 <script src="{{ asset('js/voice-recorder.js') }}"></script>
 <script src="{{ asset('js/chat-attachment.js') }}"></script>
 <script src="{{ asset('js/chat-lightbox.js') }}"></script>
+<script src="{{ asset('js/emoji-picker.js') }}"></script>
 <script>
 const chatBox = document.getElementById('chatMessages');
 const chatForm = document.getElementById('chatForm');
@@ -243,5 +247,12 @@ chatInput.addEventListener('keydown', (e) => {
 });
 
 initVoiceRecorder({ sendUrl: sendUrl, onMessage: renderMessage });
+
+initEmojiPicker({
+    buttonId: 'emojiBtn',
+    inputId: 'chatInput',
+    isPremium: {{ app.user.isPremium ? 'true' : 'false' }},
+    emojis: {{ emojis|json_encode|raw }}
+});
 </script>
 {% endblock %}
