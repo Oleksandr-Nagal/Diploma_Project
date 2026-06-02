@@ -60,6 +60,12 @@
                     </form>
                 {% endif %}
 
+                {% if isOrganizer %}
+                    <form action="{{ path('app_event_delete', {id: event.id}) }}" method="post" onsubmit="return confirm('Ви впевнені, що хочете видалити цю подію?')">
+                        <button class="btn btn-gf-danger"><i class="fas fa-trash me-1"></i> Видалити подію</button>
+                    </form>
+                {% endif %}
+
                 {% if is_granted('ROLE_MODERATOR') and not isOrganizer %}
                     <form action="{{ path('app_moderator_close_event', {id: event.id}) }}" method="post" onsubmit="return confirm('[Модерація] Ви впевнені, що хочете видалити цю подію?')">
                         <button class="btn btn-gf-danger"><i class="fas fa-gavel me-1"></i> Видалити подію (Модератор)</button>

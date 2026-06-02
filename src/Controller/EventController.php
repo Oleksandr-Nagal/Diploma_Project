@@ -110,4 +110,26 @@ class EventController extends AbstractController
         $em->flush();
         return $this->redirectToRoute('app_event_show', ['id' => $event->getId()]);
     }
+
+    #[Route('/{id}/delete', name: 'app_event_delete', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function delete(int $id, GameEventRepository $eventRepo, EntityManagerInterface $em): Response
+    {
+        $event = $eventRepo->find($id);
+
+        if (!$event) {
+            $this->addFlash('info', 'Подія завершилась і була видалена.');
+            return $this->redirectToRoute('app_events');
+        }
+
+        if ($event->getOrganizer() !== $this->getUser()) {
+            $this->addFlash('error', 'Тільки організатор може видалити подію.');
+            return $this->redirectToRoute('app_event_show', ['id' => $event->getId()]);
+        }
+
+        $em->remove($event);
+        $em->flush();
+
+        $this->addFlash('success', 'Подію видалено.');
+        return $this->redirectToRoute('app_events');
+    }
 }
