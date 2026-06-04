@@ -13,8 +13,29 @@ class LobbyRepository extends ServiceEntityRepository
         parent::__construct($registry, Lobby::class);
     }
 
+    public function removeStaleClosedLobbies(): void
+    {
+        $threshold = new \DateTime('-5 minutes');
+        $stale = $this->createQueryBuilder('l')
+            ->where('l.status = :status')
+            ->andWhere('l.closedAt < :threshold')
+            ->setParameter('status', 'closed')
+            ->setParameter('threshold', $threshold)
+            ->getQuery()
+            ->getResult();
+
+        $em = $this->getEntityManager();
+        foreach ($stale as $lobby) {
+            $em->remove($lobby);
+        }
+        if ($stale) {
+            $em->flush();
+        }
+    }
+
     public function findOpenLobbies(array $filters = []): array
     {
+        $this->removeStaleClosedLobbies();
         $qb = $this->createQueryBuilder('l')
             ->leftJoin('l.game', 'g')
             ->leftJoin('l.owner', 'o')

@@ -63,10 +63,13 @@ class Lobby
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $scheduledAt = null;
 
-    #[ORM\OneToMany(targetEntity: LobbyMember::class, mappedBy: 'lobby', orphanRemoval: true)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $closedAt = null;
+
+    #[ORM\OneToMany(targetEntity: LobbyMember::class, mappedBy: 'lobby', cascade: ['remove'], orphanRemoval: true)]
     private Collection $members;
 
-    #[ORM\OneToMany(targetEntity: ChatMessage::class, mappedBy: 'lobby', orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: ChatMessage::class, mappedBy: 'lobby', cascade: ['remove'], orphanRemoval: true)]
     private Collection $messages;
 
     public function __construct()
@@ -122,6 +125,9 @@ class Lobby
 
     public function getScheduledAt(): ?\DateTimeInterface { return $this->scheduledAt; }
     public function setScheduledAt(?\DateTimeInterface $scheduledAt): static { $this->scheduledAt = $scheduledAt; return $this; }
+
+    public function getClosedAt(): ?\DateTimeInterface { return $this->closedAt; }
+    public function setClosedAt(?\DateTimeInterface $closedAt): static { $this->closedAt = $closedAt; return $this; }
 
     public function getMembers(): Collection { return $this->members; }
     public function getMessages(): Collection { return $this->messages; }
