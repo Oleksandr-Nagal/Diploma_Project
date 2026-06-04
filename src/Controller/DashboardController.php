@@ -24,7 +24,7 @@ class DashboardController extends AbstractController
         return $this->render('dashboard/index.html.twig', [
             'lobbies' => $lobbyRepo->findOpenLobbies(),
             'games' => $gameRepo->findActiveGames(),
-            'notifications' => $notifRepo->findUnreadByUser($user),
+            'notifications' => $user ? $notifRepo->findUnreadByUser($user) : [],
             'events' => $eventRepo->findUpcomingEvents(5),
         ]);
     }

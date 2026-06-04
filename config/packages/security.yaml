@@ -40,6 +40,11 @@ security:
     - { path: ^/oauth, roles: PUBLIC_ACCESS }
     - { path: ^/banned, roles: PUBLIC_ACCESS }
     - { path: ^/premium/callback, roles: PUBLIC_ACCESS }
+    - { path: ^/$, roles: PUBLIC_ACCESS }
+    - { path: ^/lobby$, roles: PUBLIC_ACCESS }
+    - { path: ^/leaderboard$, roles: PUBLIC_ACCESS }
+    - { path: ^/events$, roles: PUBLIC_ACCESS }
+    - { path: ^/games, roles: PUBLIC_ACCESS }
     - { path: ^/admin, roles: ROLE_ADMIN }
     - { path: ^/moderator, roles: ROLE_MODERATOR }
     - { path: ^/, roles: ROLE_USER }
