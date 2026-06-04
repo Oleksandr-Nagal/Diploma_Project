@@ -129,16 +129,27 @@ class LobbyController extends AbstractController
     }
 
     #[Route('/{id}/close', name: 'app_lobby_close', methods: ['POST'])]
-    public function close(Lobby $lobby, EntityManagerInterface $em): Response
+    public function close(Lobby $lobby, EntityManagerInterface $em, \Symfony\Component\Mercure\HubInterface $hub): Response
     {
         if ($lobby->getOwner() !== $this->getUser()) {
             throw $this->createAccessDeniedException();
         }
 
         $lobby->setStatus('closed');
+        $lobby->setClosedAt(new \DateTime());
         $em->flush();
-        $this->addFlash('success', 'Лобі закрито.');
-        return $this->redirectToRoute('app_lobbies');
+
+        try {
+            $update = new \Symfony\Component\Mercure\Update(
+                'https://gamefinder.com/lobby/' . $lobby->getId(),
+                json_encode(['status' => 'closed', 'action' => 'trigger_review_modal', 'lobby_id' => $lobby->getId()])
+            );
+            $hub->publish($update);
+        } catch (\Exception $e) {
+        }
+
+        $this->addFlash('success', 'Лобі закрито. Залиште відгуки союзникам!');
+        return $this->redirectToRoute('app_lobby_show', ['id' => $lobby->getId()]);
     }
 
     #[Route('/{id}/status', name: 'app_lobby_status')]

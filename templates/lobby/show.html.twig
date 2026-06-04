@@ -166,23 +166,192 @@
     </div>
 </div>
 {% endif %}
+{% if isMember or isOwner %}
+<div class="modal fade" id="reviewModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background:var(--gf-card);border:1px solid var(--gf-border);border-radius:16px;">
+            <div class="modal-header" style="border-color:var(--gf-border);">
+                <h5 class="modal-title" style="color:var(--gf-text)"><i class="fas fa-star text-warning me-2"></i>Оцініть союзників</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Закрити"></button>
+            </div>
+            <div class="modal-body" id="reviewModalBody">
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-2 text-muted">Завантаження...</p>
+                </div>
+            </div>
+            <div class="modal-footer d-flex justify-content-between" style="border-color:var(--gf-border);">
+                <button type="button" class="btn btn-gf-outline" data-bs-dismiss="modal">Пропустити</button>
+                <button type="button" class="btn btn-gf" id="btnSubmitReviews">Зберегти відгуки</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 {% endblock %}
 
 {% block javascripts %}
 <script>
 const statusUrl = '{{ path("app_lobby_status", {id: lobby.id}) }}';
+const reviewDataUrl = '{{ path("api_lobby_review_data", {id: lobby.id}) }}';
+const reviewSubmitUrl = '{{ path("api_reviews_batch_upsert") }}';
+const lobbyId = {{ lobby.id }};
 let currentStatus = '{{ isPending ? "pending" : (isMember ? "accepted" : (isOwner ? "owner" : "none")) }}';
+const isParticipant = {{ (isMember or isOwner) ? 'true' : 'false' }};
 
+let lobbyClosedHandled = false;
 setInterval(async () => {
     try {
         const res = await fetch(statusUrl);
         const data = await res.json();
 
-        if (data.memberStatus !== currentStatus) {
+        if (data.lobbyStatus === 'closed' && !lobbyClosedHandled && isParticipant && reviewModalInstance) {
+            lobbyClosedHandled = true;
+            loadReviewData();
+            reviewModalInstance.show();
+            return;
+        }
+
+        if (data.memberStatus !== currentStatus && data.lobbyStatus !== 'closed') {
             window.location.reload();
             return;
         }
     } catch(e) {}
 }, 3000);
+
+let reviewModalInstance = null;
+
+function renderReviewStars(targetId, savedPositive) {
+    let positiveChecked = savedPositive === true ? 'checked' : '';
+    let negativeChecked = savedPositive === false ? 'checked' : '';
+    let noneChecked = savedPositive === null ? 'checked' : '';
+
+    return `
+        <div class="d-flex gap-3 mb-2">
+            <div class="form-check">
+                <input class="form-check-input review-radio" type="radio" name="rating_${targetId}" value="positive" ${positiveChecked}>
+                <label class="form-check-label text-success"><i class="fas fa-thumbs-up"></i> Добре</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input review-radio" type="radio" name="rating_${targetId}" value="negative" ${negativeChecked}>
+                <label class="form-check-label text-danger"><i class="fas fa-thumbs-down"></i> Погано</label>
+            </div>
+        </div>
+    `;
+}
+
+async function loadReviewData() {
+    try {
+        const res = await fetch(reviewDataUrl);
+        const data = await res.json();
+        const body = document.getElementById('reviewModalBody');
+        
+        if (!data || data.length === 0) {
+            body.innerHTML = '<p class="text-center text-muted my-3">Немає інших учасників для оцінювання.</p>';
+            return;
+        }
+
+        let html = '<p style="color:var(--gf-muted);opacity:0.85;" class="mb-3">Ви можете оцінити гру з вашими союзниками. Це допоможе сформувати їхній рейтинг.</p>';
+        data.forEach(user => {
+            let avatarHtml = user.avatarHtml;
+            
+            let isPositive = user.existingReview ? user.existingReview.isPositive : null;
+            let comment = user.existingReview ? (user.existingReview.comment || '') : '';
+            let editBadge = user.existingReview ? `<span class="badge bg-info ms-2" style="font-size:0.7rem">Ви вже оцінювали</span>` : '';
+
+            html += `
+                <div class="review-item mb-4 p-3" data-target="${user.target_id}" style="background:var(--gf-dark);border-radius:10px;">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        ${avatarHtml}
+                        <div>
+                            <strong style="color:var(--gf-text)">${user.username}</strong>
+                            ${editBadge}
+                        </div>
+                    </div>
+                    ${renderReviewStars(user.target_id, isPositive)}
+                    <textarea class="form-control form-control-sm review-comment" placeholder="Коментар (необов'язково)" rows="2">${comment}</textarea>
+                </div>
+            `;
+        });
+        body.innerHTML = html;
+    } catch(e) {
+        console.error(e);
+        document.getElementById('reviewModalBody').innerHTML = '<p class="text-danger">Помилка завантаження даних.</p>';
+    }
+}
+
+async function submitReviews() {
+    const items = document.querySelectorAll('.review-item');
+    let reviews = [];
+    items.forEach(item => {
+        let targetId = item.getAttribute('data-target');
+        let radio = item.querySelector(`input[name="rating_${targetId}"]:checked`);
+        let comment = item.querySelector('.review-comment').value;
+        if (radio) {
+            reviews.push({
+                target_id: targetId,
+                isPositive: radio.value === 'positive',
+                comment: comment
+            });
+        }
+    });
+
+    if (reviews.length === 0) {
+        reviewModalInstance.hide();
+        return;
+    }
+
+    const btn = document.getElementById('btnSubmitReviews');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Збереження...';
+
+    try {
+        const res = await fetch(reviewSubmitUrl, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ lobby_id: lobbyId, reviews: reviews })
+        });
+        const json = await res.json();
+        if (json.success) {
+            reviewModalInstance.hide();
+            window.location.href = '{{ path("app_lobbies") }}';
+        } else {
+            alert(json.error || 'Помилка збереження.');
+            btn.disabled = false;
+            btn.innerHTML = 'Зберегти відгуки';
+        }
+    } catch(e) {
+        alert('Помилка сервера');
+        btn.disabled = false;
+        btn.innerHTML = 'Зберегти відгуки';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (isParticipant) {
+        reviewModalInstance = new bootstrap.Modal(document.getElementById('reviewModal'));
+        document.getElementById('btnSubmitReviews').addEventListener('click', submitReviews);
+
+        try {
+            const url = new URL('{{ mercure("https://gamefinder.com/lobby/" ~ lobby.id)|escape("js") }}');
+            const eventSource = new EventSource(url);
+
+            eventSource.onmessage = event => {
+                const data = JSON.parse(event.data);
+                if (data.action === 'trigger_review_modal') {
+                    lobbyClosedHandled = true;
+                    loadReviewData();
+                    reviewModalInstance.show();
+                }
+            };
+        } catch(e) {}
+
+        {% if lobby.status == 'closed' %}
+            lobbyClosedHandled = true;
+            loadReviewData();
+            reviewModalInstance.show();
+        {% endif %}
+    }
+});
 </script>
 {% endblock %}
