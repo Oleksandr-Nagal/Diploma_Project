@@ -86,6 +86,38 @@ class ReviewServiceTest extends TestCase
         $this->service->createReview($author, $target, true, null);
     }
 
+    public function testUpsertExistingReviewUpdatesWithoutPersist(): void
+    {
+        $author = $this->createMock(User::class);
+        $author->method('getUsername')->willReturn('Author');
+
+        $target = $this->createMock(User::class);
+        $lobby = $this->createMock(Lobby::class);
+
+        $existingReview = new Review();
+        $existingReview->setAuthor($author);
+        $existingReview->setTarget($target);
+        $existingReview->setIsPositive(true);
+        $existingReview->setComment('Old comment');
+
+        $this->reviewRepo->method('findOneBy')
+            ->with(['author' => $author, 'target' => $target])
+            ->willReturn($existingReview);
+
+        $this->reviewRepo->method('calculateRating')->willReturn(['rating' => 60.0, 'total' => 3]);
+
+        $this->em->expects($this->never())->method('persist');
+        $this->em->expects($this->exactly(2))->method('flush');
+
+        $this->notificationService->expects($this->never())->method('notifyNewReview');
+
+        $review = $this->service->upsertReview($author, $target, false, 'Updated comment', $lobby);
+
+        $this->assertFalse($review->isPositive());
+        $this->assertSame('Updated comment', $review->getComment());
+        $this->assertSame($lobby, $review->getLobby());
+    }
+
     public function testUpdateUserRatingSetsValues(): void
     {
         $user = new User();
