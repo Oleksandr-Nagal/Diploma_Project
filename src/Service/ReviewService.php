@@ -18,20 +18,37 @@ class ReviewService
 
     public function createReview(User $author, User $target, bool $isPositive, ?string $comment, ?Lobby $lobby = null): Review
     {
-        $review = new Review();
-        $review->setAuthor($author);
-        $review->setTarget($target);
+        return $this->upsertReview($author, $target, $isPositive, $comment, $lobby);
+    }
+
+    public function upsertReview(User $author, User $target, bool $isPositive, ?string $comment, ?Lobby $lobby = null): Review
+    {
+        $review = $this->reviewRepository->findOneBy(['author' => $author, 'target' => $target]);
+        $isNew = false;
+
+        if (!$review) {
+            $review = new Review();
+            $review->setAuthor($author);
+            $review->setTarget($target);
+            $isNew = true;
+        }
+
         $review->setIsPositive($isPositive);
         $review->setComment($comment);
         $review->setLobby($lobby);
+        $review->setUpdatedAt(new \DateTime());
 
-        $this->em->persist($review);
+        if ($isNew) {
+            $this->em->persist($review);
+        }
+        
         $this->em->flush();
-
         $this->updateUserRating($target);
         $this->em->flush();
 
-        $this->notificationService->notifyNewReview($target, $author->getUsername(), $isPositive);
+        if ($isNew) {
+            $this->notificationService->notifyNewReview($target, $author->getUsername(), $isPositive);
+        }
 
         return $review;
     }
