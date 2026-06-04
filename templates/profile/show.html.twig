@@ -193,19 +193,6 @@
         <div class="card-gf mb-4">
             <h4 class="mb-3"><i class="fas fa-star me-2" style="color:var(--gf-secondary)"></i>Відгуки</h4>
 
-            {% if not isOwn %}
-            <form action="{{ path('app_review_create', {id: user.id}) }}" method="post" class="mb-4 p-3" style="background:var(--gf-dark);border-radius:12px;">
-                <div class="d-flex gap-2 mb-2">
-                    <button type="submit" name="rating" value="positive" class="btn btn-gf-success flex-fill">
-                        <i class="fas fa-thumbs-up me-1"></i> Позитивний
-                    </button>
-                    <button type="submit" name="rating" value="negative" class="btn btn-gf-danger flex-fill">
-                        <i class="fas fa-thumbs-down me-1"></i> Негативний
-                    </button>
-                </div>
-                <textarea name="comment" class="form-control" rows="2" placeholder="Коментар (необов'язково)"></textarea>
-            </form>
-            {% endif %}
 
             {% for review in reviews %}
             <div class="d-flex gap-3 mb-3 p-3" style="background:var(--gf-dark);border-radius:12px;">
