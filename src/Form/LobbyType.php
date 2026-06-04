@@ -13,6 +13,9 @@ use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Validator\Constraints\Range;
+use Symfony\Component\Validator\Constraints\Callback;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -53,10 +56,18 @@ class LobbyType extends AbstractType
             ->add('minAge', IntegerType::class, [
                 'label' => 'Мін. вік',
                 'required' => false,
+                'constraints' => [
+                    new Range(min: 6, max: 60, notInRangeMessage: 'Вік має бути від {{ min }} до {{ max }} років'),
+                ],
+                'attr' => ['min' => 6, 'max' => 60],
             ])
             ->add('maxAge', IntegerType::class, [
                 'label' => 'Макс. вік',
                 'required' => false,
+                'constraints' => [
+                    new Range(min: 6, max: 60, notInRangeMessage: 'Вік має бути від {{ min }} до {{ max }} років'),
+                ],
+                'attr' => ['min' => 6, 'max' => 60],
             ])
             ->add('language', ChoiceType::class, [
                 'label' => 'Мова',
@@ -93,6 +104,22 @@ class LobbyType extends AbstractType
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults(['data_class' => Lobby::class]);
+        $resolver->setDefaults([
+            'data_class' => Lobby::class,
+            'constraints' => [
+                new Callback(function (Lobby $lobby, ExecutionContextInterface $context) {
+                    if ($lobby->getMaxAge() && !$lobby->getMinAge()) {
+                        $context->buildViolation('Вкажіть мінімальний вік, якщо вказано максимальний.')
+                            ->atPath('minAge')
+                            ->addViolation();
+                    }
+                    if ($lobby->getMinAge() && $lobby->getMaxAge() && $lobby->getMaxAge() <= $lobby->getMinAge()) {
+                        $context->buildViolation('Максимальний вік має бути більшим за мінімальний.')
+                            ->atPath('maxAge')
+                            ->addViolation();
+                    }
+                }),
+            ],
+        ]);
     }
 }
