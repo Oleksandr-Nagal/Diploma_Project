@@ -16,6 +16,7 @@ class PremiumControllerTest extends WebTestCase
 
     protected function setUp(): void
     {
+        static::ensureKernelShutdown();
         $this->client = static::createClient();
         $this->em = static::getContainer()->get(EntityManagerInterface::class);
 
@@ -146,6 +147,26 @@ class PremiumControllerTest extends WebTestCase
         $this->client->loginUser($user);
 
         $this->client->request('GET', '/premium/result?session_id=nonexistent');
+
+        $this->assertResponseRedirects('/premium');
+    }
+
+    public function testResultPageWithoutSessionId(): void
+    {
+        $user = $this->createUser('res@test.com', 'resuser');
+        $this->client->loginUser($user);
+
+        $this->client->request('GET', '/premium/result');
+
+        $this->assertResponseRedirects('/premium');
+    }
+
+    public function testManageRedirectsForFreeUser(): void
+    {
+        $user = $this->createUser('free2@test.com', 'freeuser2');
+        $this->client->loginUser($user);
+
+        $this->client->request('GET', '/premium/manage');
 
         $this->assertResponseRedirects('/premium');
     }

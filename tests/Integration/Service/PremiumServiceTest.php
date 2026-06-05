@@ -14,6 +14,7 @@ class PremiumServiceTest extends KernelTestCase
 
     protected function setUp(): void
     {
+        static::ensureKernelShutdown();
         self::bootKernel();
         $container = static::getContainer();
 
