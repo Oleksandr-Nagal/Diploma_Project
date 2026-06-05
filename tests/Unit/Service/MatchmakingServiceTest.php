@@ -170,6 +170,126 @@ class MatchmakingServiceTest extends TestCase
         $this->assertContains('Активний гравець', $reasonTexts);
     }
 
+    public function testGetMatchReasonsIncludesRating(): void
+    {
+        $user = $this->createUser(1, null, null, null);
+        $candidate = $this->createUser(2, null, null, null);
+        $candidate->setRating(85.0);
+        $candidate->setTotalReviews(5);
+
+        $reasons = $this->invokeGetMatchReasons($user, $candidate, []);
+
+        $reasonTexts = array_map(fn($r) => $r['text'], $reasons);
+        $hasRating = count(array_filter($reasonTexts, fn($t) => str_contains($t, 'рейтинг'))) > 0;
+        $this->assertTrue($hasRating);
+    }
+
+    public function testCalculateScoreAgeDiff5To10(): void
+    {
+        $user = $this->createUser(1, null, null, 25);
+        $candidate = $this->createUser(2, null, null, 33);
+
+        $score = $this->invokeCalculateScore($user, $candidate, []);
+
+        $this->assertGreaterThanOrEqual(10, $score);
+    }
+
+    public function testCalculateScoreCommonGames(): void
+    {
+        $user = $this->createUser(1, null, null, null);
+        $candidate = $this->createUser(2, null, null, null);
+
+        $gameIds = [1 => true, 2 => true];
+
+        $game1 = $this->createMock(\App\Entity\Game::class);
+        $game1->method('getId')->willReturn(1);
+        $game1->method('getName')->willReturn('CS2');
+
+        $ach = $this->createMock(\App\Entity\Achievement::class);
+        $ach->method('getGame')->willReturn($game1);
+
+        $reflection = new \ReflectionClass($candidate);
+        $achProperty = $reflection->getProperty('achievements');
+        $achProperty->setValue($candidate, new ArrayCollection([$ach]));
+
+        $score = $this->invokeCalculateScore($user, $candidate, $gameIds);
+
+        $this->assertGreaterThanOrEqual(15, $score);
+    }
+
+    public function testGetMatchReasonsCommonGamesFromAchievements(): void
+    {
+        $user = $this->createUser(1, null, null, null);
+        $candidate = $this->createUser(2, null, null, null);
+
+        $game = $this->createMock(\App\Entity\Game::class);
+        $game->method('getId')->willReturn(5);
+        $game->method('getName')->willReturn('Valorant');
+
+        $ach = $this->createMock(\App\Entity\Achievement::class);
+        $ach->method('getGame')->willReturn($game);
+
+        $reflection = new \ReflectionClass($candidate);
+        $achProperty = $reflection->getProperty('achievements');
+        $achProperty->setValue($candidate, new ArrayCollection([$ach]));
+
+        $reasons = $this->invokeGetMatchReasons($user, $candidate, [5 => true]);
+
+        $reasonTexts = array_map(fn($r) => $r['text'], $reasons);
+        $hasGame = count(array_filter($reasonTexts, fn($t) => str_contains($t, 'Valorant'))) > 0;
+        $this->assertTrue($hasGame);
+    }
+
+    public function testGetMatchReasonsCommonGamesFromLobbies(): void
+    {
+        $user = $this->createUser(1, null, null, null);
+        $candidate = $this->createUser(2, null, null, null);
+
+        $game = $this->createMock(\App\Entity\Game::class);
+        $game->method('getId')->willReturn(7);
+        $game->method('getName')->willReturn('Dota 2');
+
+        $lobby = $this->createMock(\App\Entity\Lobby::class);
+        $lobby->method('getGame')->willReturn($game);
+
+        $membership = $this->createMock(\App\Entity\LobbyMember::class);
+        $membership->method('getStatus')->willReturn('accepted');
+        $membership->method('getLobby')->willReturn($lobby);
+
+        $reflection = new \ReflectionClass($candidate);
+        $membershipsProperty = $reflection->getProperty('lobbyMemberships');
+        $membershipsProperty->setValue($candidate, new ArrayCollection([$membership]));
+
+        $reasons = $this->invokeGetMatchReasons($user, $candidate, [7 => true]);
+
+        $reasonTexts = array_map(fn($r) => $r['text'], $reasons);
+        $hasGame = count(array_filter($reasonTexts, fn($t) => str_contains($t, 'Dota 2'))) > 0;
+        $this->assertTrue($hasGame);
+    }
+
+    public function testCalculateScoreLobbyMembershipBonus(): void
+    {
+        $user = $this->createUser(1, null, null, null);
+        $candidate = $this->createUser(2, null, null, null);
+
+        $membership = $this->createMock(\App\Entity\LobbyMember::class);
+        $membership->method('getStatus')->willReturn('accepted');
+
+        $lobby = $this->createMock(\App\Entity\Lobby::class);
+        $game = $this->createMock(\App\Entity\Game::class);
+        $game->method('getId')->willReturn(99);
+        $lobby->method('getGame')->willReturn($game);
+        $membership->method('getLobby')->willReturn($lobby);
+
+        $reflection = new \ReflectionClass($candidate);
+        $membershipsProperty = $reflection->getProperty('lobbyMemberships');
+        $membershipsProperty->setValue($candidate, new ArrayCollection([$membership]));
+
+        $score = $this->invokeCalculateScore($user, $candidate, []);
+
+        $this->assertGreaterThanOrEqual(10, $score);
+    }
+
     private function createUser(int $id, ?string $language, ?string $city, ?int $age): User
     {
         $user = new User();

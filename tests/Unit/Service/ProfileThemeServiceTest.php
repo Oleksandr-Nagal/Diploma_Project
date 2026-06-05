@@ -66,4 +66,42 @@ class ProfileThemeServiceTest extends TestCase
             }
         }
     }
+
+    public function testIsPremiumThemeReturnsTrueForPremium(): void
+    {
+        $this->assertTrue(ProfileThemeService::isPremiumTheme('neon'));
+        $this->assertTrue(ProfileThemeService::isPremiumTheme('gold'));
+        $this->assertTrue(ProfileThemeService::isPremiumTheme('cyberpunk'));
+    }
+
+    public function testIsPremiumThemeReturnsFalseForFree(): void
+    {
+        $this->assertFalse(ProfileThemeService::isPremiumTheme('default'));
+        $this->assertFalse(ProfileThemeService::isPremiumTheme('ocean'));
+        $this->assertFalse(ProfileThemeService::isPremiumTheme('forest'));
+    }
+
+    public function testIsPremiumThemeReturnsFalseForInvalid(): void
+    {
+        $this->assertFalse(ProfileThemeService::isPremiumTheme('nonexistent'));
+    }
+
+    public function testGetChoicesExcludesPremiumWhenFalse(): void
+    {
+        $choices = ProfileThemeService::getChoices(false);
+
+        $this->assertNotContains('neon', $choices);
+        $this->assertNotContains('gold', $choices);
+        $this->assertNotContains('cyberpunk', $choices);
+        $this->assertContains('ocean', $choices);
+    }
+
+    public function testGetChoicesIncludesPremiumByDefault(): void
+    {
+        $choices = ProfileThemeService::getChoices();
+
+        $this->assertContains('neon', $choices);
+        $this->assertContains('gold', $choices);
+        $this->assertContains('cyberpunk', $choices);
+    }
 }

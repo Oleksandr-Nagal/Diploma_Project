@@ -115,6 +115,20 @@ class NotificationServiceTest extends TestCase
         $this->service->notifyNewReview($user, 'Gamer123', false);
     }
 
+    public function testNotifyEventReminder(): void
+    {
+        $user = $this->createMock(User::class);
+
+        $this->em->expects($this->once())->method('persist')
+            ->with($this->callback(function (Notification $n) {
+                return $n->getType() === 'system'
+                    && str_contains($n->getMessage(), 'Турнір')
+                    && $n->getLink() === '/events/5';
+            }));
+
+        $this->service->notifyEventReminder($user, 'Турнір', 5);
+    }
+
     public function testMarkAsRead(): void
     {
         $notification = new Notification();

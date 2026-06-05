@@ -148,6 +148,59 @@ class LobbyServiceTest extends TestCase
         $this->assertSame('rejected', $member->getStatus());
     }
 
+    public function testLeaveLobbyRemovesMember(): void
+    {
+        $user = $this->createMock(User::class);
+
+        $member = $this->createMock(LobbyMember::class);
+        $member->method('getUser')->willReturn($user);
+
+        $lobby = $this->createMock(Lobby::class);
+        $lobby->method('getMembers')->willReturn(new ArrayCollection([$member]));
+        $lobby->method('getOwner')->willReturn($this->createMock(User::class));
+        $lobby->method('getStatus')->willReturn('open');
+
+        $this->em->expects($this->once())->method('remove')->with($member);
+        $this->em->expects($this->once())->method('flush');
+
+        $this->service->leaveLobby($user, $lobby);
+    }
+
+    public function testLeaveLobbyByOwnerClosesLobby(): void
+    {
+        $owner = $this->createMock(User::class);
+
+        $member = $this->createMock(LobbyMember::class);
+        $member->method('getUser')->willReturn($owner);
+
+        $lobby = $this->createMock(Lobby::class);
+        $lobby->method('getMembers')->willReturn(new ArrayCollection([$member]));
+        $lobby->method('getOwner')->willReturn($owner);
+        $lobby->method('getStatus')->willReturn('open');
+        $lobby->expects($this->once())->method('setStatus')->with('closed');
+
+        $this->em->expects($this->once())->method('remove')->with($member);
+
+        $this->service->leaveLobby($owner, $lobby);
+    }
+
+    public function testLeaveLobbyReopensFullLobby(): void
+    {
+        $user = $this->createMock(User::class);
+        $owner = $this->createMock(User::class);
+
+        $member = $this->createMock(LobbyMember::class);
+        $member->method('getUser')->willReturn($user);
+
+        $lobby = $this->createMock(Lobby::class);
+        $lobby->method('getMembers')->willReturn(new ArrayCollection([$member]));
+        $lobby->method('getOwner')->willReturn($owner);
+        $lobby->method('getStatus')->willReturn('full');
+        $lobby->expects($this->once())->method('setStatus')->with('open');
+
+        $this->service->leaveLobby($user, $lobby);
+    }
+
     private function createLobbyMock(int $maxMembers, int $memberCount, bool $isPrivate, string $status): Lobby&MockObject
     {
         $members = [];
