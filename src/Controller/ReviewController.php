@@ -72,8 +72,8 @@ class ReviewController extends AbstractController
 
         if ($lobby->getClosedAt() && $lobby->getCreatedAt()) {
             $diff = $lobby->getClosedAt()->getTimestamp() - $lobby->getCreatedAt()->getTimestamp();
-            if ($diff < 60) {
-                return $this->json(['error' => 'Час існування лобі занадто малий для оцінювання (мінімум 15 хвилин).'], 400);
+            if ($diff < 300) {
+                return $this->json(['error' => 'Час існування лобі занадто малий для оцінювання (мінімум 5 хвилин).'], 400);
             }
         }
 
