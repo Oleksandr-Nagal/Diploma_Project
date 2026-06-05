@@ -6,9 +6,9 @@
 
 | Рівень | Інструмент | Що перевіряється |
 |--------|-----------|------------------|
-| Unit-тести | PHPUnit | Сервіси, сутності, бізнес-логіка |
+| Unit-тести | PHPUnit | Сервіси, сутності, форми, бізнес-логіка |
+| Інтеграційні тести | PHPUnit + Symfony Kernel | Контролери, взаємодія з БД |
 | Статичний аналіз | PHP lint, Twig lint, Container lint | Синтаксис, конфігурація |
-| Ручне тестування | Браузер | UI, OAuth, WebRTC, файли |
 
 ## Автоматизація (CI/CD)
 
@@ -17,7 +17,7 @@
 ```
 build:composer → lint:php-syntax
 build:npm      → lint:twig        → test:unit
-               → lint:container
+               → lint:container   → test:integration
 ```
 
 **Що перевіряється автоматично:**
@@ -25,7 +25,7 @@ build:npm      → lint:twig        → test:unit
 - Збірка frontend-ресурсів
 - Синтаксис PHP та Twig-шаблонів
 - Коректність DI-контейнера Symfony
-- 69 модульних тестів (сервіси + сутності)
+- 94 тести (unit + integration)
 
 **Результат:** JUnit XML-звіт (`var/log/junit.xml`)
 
@@ -41,6 +41,24 @@ build:npm      → lint:twig        → test:unit
 | AvatarService | `tests/Unit/Service/AvatarServiceTest.php` |
 | User (entity) | `tests/Unit/Entity/UserTest.php` |
 | Lobby (entity) | `tests/Unit/Entity/LobbyTest.php` |
+| LobbyType (form) | `tests/Unit/Form/LobbyTypeTest.php` |
+
+## Інтеграційні тести
+
+| Компонент | Тест-файл |
+|-----------|-----------|
+| PremiumService | `tests/Integration/Service/PremiumServiceTest.php` |
+| LobbyService | `tests/Integration/Service/LobbyServiceTest.php` |
+| PremiumController | `tests/Integration/Controller/PremiumControllerTest.php` |
+
+## Ключові сценарії, що тестуються
+
+- Система відгуків: створення нового відгуку, оновлення існуючого, перерахунок рейтингу, відправка сповіщення
+- Система лобі: створення кімнати, приєднання (публічне та приватне), обмеження на повні/закриті лобі, вихід учасника
+- Модерація лобі: прийняття та відхилення заявок, зміна статусу учасника
+- Валідація форм: вікові обмеження (від 6 до 60 років), максимальний вік більше мінімального
+- Підбір гравців: алгоритм matchmaking на основі профілю та вподобань
+- Сповіщення: генерація повідомлень при ключових діях користувачів
 
 ## Ручне тестування
 
@@ -48,11 +66,12 @@ build:npm      → lint:twig        → test:unit
 - OAuth-потоки (Google, Discord)
 - Голосовий чат (WebRTC)
 - Завантаження файлів та зображень
-- Візуальна коректність UI
-- Кросбраузерна сумісність
+- Mercure real-time оновлення
+- Premium оплата (LiqPay callback)
 
 ## Критерії проходження
 
 - Всі unit-тести зелені (0 failures)
+- Інтеграційні тести зелені
 - Lint-перевірки без помилок
 - Пайплайн завершується зі статусом `passed`
