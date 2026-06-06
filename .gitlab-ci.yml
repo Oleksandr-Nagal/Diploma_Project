@@ -80,6 +80,7 @@ test:integration:
     - build:composer
   script:
     - Copy-Item .env.test .env
+    - php bin/console doctrine:schema:create --env=test
     - php bin/phpunit --testsuite Integration --testdox
   artifacts:
     when: always
