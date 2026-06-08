@@ -165,6 +165,37 @@
             animation: fadeInUp 0.4s ease forwards;
         }
 
+        .badge-gf {
+            display: inline-block;
+            background: rgba(108, 92, 231, 0.15);
+            color: var(--gf-text);
+            border: 1px solid rgba(108, 92, 231, 0.3);
+            border-radius: 20px;
+            padding: 0.3rem 0.75rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .badge-gf:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(108, 92, 231, 0.2);
+        }
+        .badge-gf-success {
+            background: rgba(0, 184, 148, 0.15);
+            border-color: rgba(0, 184, 148, 0.3);
+            color: var(--gf-success);
+        }
+        .badge-gf-warning {
+            background: rgba(253, 203, 110, 0.15);
+            border-color: rgba(253, 203, 110, 0.3);
+            color: var(--gf-warning);
+        }
+        .badge-gf-danger {
+            background: rgba(255, 107, 107, 0.15);
+            border-color: rgba(255, 107, 107, 0.3);
+            color: var(--gf-danger);
+        }
+
         .btn-gf-outline {
             background: transparent;
             color: var(--gf-text);
