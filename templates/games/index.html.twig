@@ -8,7 +8,29 @@
     <p style="color:var(--gf-muted)">Обери гру та знайди напарників</p>
 </div>
 
-<div class="row g-4">
+<div class="card-gf mb-4">
+    <div class="d-flex gap-3 flex-wrap">
+        <div class="flex-grow-1">
+            <input type="text" id="gameSearch" class="form-control" placeholder="Пошук за назвою гри...">
+        </div>
+        <div>
+            <select id="gameGenreFilter" class="form-select">
+                <option value="">Усі жанри</option>
+                {% set genres = [] %}
+                {% for game in games %}
+                    {% if game.genre and game.genre not in genres %}
+                        {% set genres = genres|merge([game.genre]) %}
+                    {% endif %}
+                {% endfor %}
+                {% for genre in genres|sort %}
+                    <option value="{{ genre }}">{{ genre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4" id="gamesGrid">
     {% for game in games %}
     <div class="col-md-4 col-lg-3">
         <a href="{{ path('app_game_show', {id: game.id}) }}" class="card-gf d-block text-decoration-none text-center h-100">
@@ -37,4 +59,31 @@
         </div>
     {% endfor %}
 </div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+const searchInput = document.getElementById('gameSearch');
+const genreFilter = document.getElementById('gameGenreFilter');
+const cards = document.querySelectorAll('#gamesGrid > .col-md-4');
+
+function filterGames() {
+    const query = searchInput.value.toLowerCase().trim();
+    const genre = genreFilter.value;
+
+    cards.forEach(card => {
+        const name = card.querySelector('h5').textContent.toLowerCase();
+        const badges = card.querySelectorAll('.badge-gf');
+        const cardGenre = badges.length > 0 ? badges[0].textContent.trim() : '';
+
+        const matchesSearch = !query || name.includes(query);
+        const matchesGenre = !genre || cardGenre === genre;
+
+        card.style.display = (matchesSearch && matchesGenre) ? '' : 'none';
+    });
+}
+
+searchInput.addEventListener('input', filterGames);
+genreFilter.addEventListener('change', filterGames);
+</script>
 {% endblock %}
