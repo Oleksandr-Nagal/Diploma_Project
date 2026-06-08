@@ -422,6 +422,48 @@
             margin-top: 3rem;
             color: var(--gf-muted);
         }
+
+        .gf-toast-container {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .gf-toast {
+            padding: 0.85rem 1.25rem;
+            border-radius: 12px;
+            color: #fff;
+            font-weight: 500;
+            font-size: 0.9rem;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            animation: toastIn 0.35s ease forwards;
+            max-width: 360px;
+        }
+
+        .gf-toast-success { background: linear-gradient(135deg, #00b894, #00a381); }
+        .gf-toast-error { background: linear-gradient(135deg, #ff6b6b, #d63031); }
+        .gf-toast-info { background: linear-gradient(135deg, var(--gf-primary), #a855f7); }
+
+        .gf-toast-hide {
+            animation: toastOut 0.3s ease forwards;
+        }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateX(40px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes toastOut {
+            from { opacity: 1; transform: translateX(0); }
+            to { opacity: 0; transform: translateX(40px); }
+        }
     </style>
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/css/tom-select.min.css" rel="stylesheet">
     <style>
@@ -565,6 +607,17 @@
     </div>
 </nav>
 
+<div class="gf-toast-container" id="gfToasts">
+    {% for type in ['success', 'error', 'info'] %}
+        {% for message in app.flashes(type) %}
+            <div class="gf-toast gf-toast-{{ type }}">
+                <i class="fas {{ type == 'success' ? 'fa-check-circle' : (type == 'error' ? 'fa-exclamation-circle' : 'fa-info-circle') }}"></i>
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endfor %}
+</div>
+
 <main class="container py-4" style="flex:1">
     {% block body %}{% endblock %}
 </main>
@@ -639,6 +692,13 @@
 <script>
 document.querySelectorAll('.card-gf').forEach((card, i) => {
     setTimeout(() => card.classList.add('card-gf-visible'), i * 100);
+});
+
+document.querySelectorAll('.gf-toast').forEach((toast, i) => {
+    setTimeout(() => {
+        toast.classList.add('gf-toast-hide');
+        toast.addEventListener('animationend', () => toast.remove());
+    }, 4000 + i * 300);
 });
 </script>
 {% block javascripts %}{% endblock %}
