@@ -37,8 +37,11 @@
 
         {% if friends is empty %}
             <div class="text-center py-4">
-                <i class="fas fa-user-plus fa-3x mb-3" style="color:var(--gf-muted)"></i>
+                <div class="empty-state-icon">
+                    <i class="fas fa-user-plus fa-3x mb-3"></i>
+                </div>
                 <p style="color:var(--gf-muted)">У вас поки немає друзів. Шукайте напарників у лобі!</p>
+                <a href="{{ path('app_lobbies') }}" class="btn btn-gf-outline btn-sm mt-2"><i class="fas fa-door-open me-1"></i> Шукати лобі</a>
             </div>
         {% else %}
             <div class="row g-3">

@@ -74,10 +74,12 @@
 {# Lobbies List #}
 {% if lobbies is empty %}
     <div class="card-gf text-center py-5">
-        <i class="fas fa-ghost fa-4x mb-3" style="color:var(--gf-muted)"></i>
+        <div class="empty-state-icon">
+            <i class="fas fa-ghost fa-4x mb-3"></i>
+        </div>
         <h4 style="color:var(--gf-muted)">Немає лобі за вашими фільтрами</h4>
         <p style="color:var(--gf-muted)">Спробуйте змінити фільтри або створіть своє лобі</p>
-        <a href="{{ path('app_lobby_create') }}" class="btn btn-gf"><i class="fas fa-plus me-1"></i> Створити</a>
+        <a href="{{ path('app_lobby_create') }}" class="btn btn-gf mt-2"><i class="fas fa-plus me-1"></i> Створити лобі</a>
     </div>
 {% else %}
     <div class="row g-3">

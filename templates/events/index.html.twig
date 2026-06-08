@@ -15,9 +15,12 @@
 
 {% if events is empty %}
     <div class="card-gf text-center py-5">
-        <i class="fas fa-calendar-xmark fa-4x mb-3" style="color:var(--gf-muted)"></i>
+        <div class="empty-state-icon">
+            <i class="fas fa-calendar-xmark fa-4x mb-3"></i>
+        </div>
         <h4 style="color:var(--gf-muted)">Немає запланованих подій</h4>
-        <a href="{{ path('app_event_create') }}" class="btn btn-gf mt-2">Створити першу подію</a>
+        <p style="color:var(--gf-muted)">Організуйте гру з друзями — створіть подію!</p>
+        <a href="{{ path('app_event_create') }}" class="btn btn-gf mt-2"><i class="fas fa-plus me-1"></i> Створити подію</a>
     </div>
 {% else %}
     <div class="row g-3">

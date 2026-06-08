@@ -135,6 +135,18 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        .empty-state-icon {
+            display: inline-block;
+            animation: emptyFloat 3s ease-in-out infinite;
+            color: var(--gf-muted);
+            opacity: 0.6;
+        }
+
+        @keyframes emptyFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
         .card-gf {
             background: var(--gf-card);
             border: 1px solid var(--gf-border);

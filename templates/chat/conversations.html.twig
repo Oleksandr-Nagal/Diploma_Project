@@ -9,9 +9,12 @@
 
 {% if conversations is empty %}
     <div class="card-gf text-center py-5">
-        <i class="fas fa-comments fa-4x mb-3" style="color:var(--gf-muted)"></i>
+        <div class="empty-state-icon">
+            <i class="fas fa-comments fa-4x mb-3"></i>
+        </div>
         <h4 style="color:var(--gf-muted)">Немає повідомлень</h4>
         <p style="color:var(--gf-muted)">Знайдіть друзів і почніть спілкування!</p>
+        <a href="{{ path('app_friends') }}" class="btn btn-gf mt-2"><i class="fas fa-user-plus me-1"></i> Знайти друзів</a>
     </div>
 {% else %}
     {% for conv in conversations %}
