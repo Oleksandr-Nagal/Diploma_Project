@@ -76,8 +76,10 @@ class LobbyController extends AbstractController
     }
 
     #[Route('/{id}', name: 'app_lobby_show')]
-    public function show(Lobby $lobby): Response
+    public function show(Lobby $lobby, LobbyRepository $lobbyRepo): Response
     {
+        $lobbyRepo->removeStaleClosedLobbies();
+
         return $this->render('lobby/show.html.twig', [
             'lobby' => $lobby,
             'isMember' => $this->isUserMember($lobby),

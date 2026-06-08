@@ -359,5 +359,11 @@ document.addEventListener('DOMContentLoaded', () => {
         {% endif %}
     }
 });
+
+{% if lobby.status == 'closed' %}
+setTimeout(() => {
+    window.location.href = '{{ path("app_lobbies") }}';
+}, 5 * 60 * 1000);
+{% endif %}
 </script>
 {% endblock %}
