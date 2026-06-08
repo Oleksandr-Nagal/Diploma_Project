@@ -128,11 +128,21 @@
         }
         .btn-gf-danger:hover { filter: brightness(1.1); color: #fff; }
 
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         .card-gf {
             background: var(--gf-card);
             border: 1px solid var(--gf-border);
             border-radius: 16px;
             padding: 1.5rem;
+            opacity: 0;
+        }
+
+        .card-gf-visible {
+            animation: fadeInUp 0.4s ease forwards;
         }
 
         .btn-gf-outline {
@@ -617,6 +627,11 @@
             }
         } catch (e) {}
     })();
+</script>
+<script>
+document.querySelectorAll('.card-gf').forEach((card, i) => {
+    setTimeout(() => card.classList.add('card-gf-visible'), i * 100);
+});
 </script>
 {% block javascripts %}{% endblock %}
 </body>
