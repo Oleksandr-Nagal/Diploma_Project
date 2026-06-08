@@ -239,6 +239,7 @@
             color: var(--gf-text);
             border-radius: 10px;
             padding: 0.75rem 1rem;
+            height: 48px;
         }
         .form-select:focus {
             background-color: var(--gf-input-bg);
@@ -510,41 +511,83 @@
     </style>
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/css/tom-select.min.css" rel="stylesheet">
     <style>
-        .ts-wrapper {
+        .ts-wrapper,
+        .ts-wrapper.single {
             background: transparent !important;
             border: none !important;
             padding: 0 !important;
         }
-        .ts-wrapper .ts-control {
-            background: var(--gf-input-bg) !important;
+        .ts-wrapper .ts-control,
+        .ts-wrapper.single .ts-control {
+            background-color: var(--gf-input-bg) !important;
             color: var(--gf-text) !important;
             border: 2px solid var(--gf-input-border) !important;
-            border-radius: 10px;
-            padding: 0.75rem 1rem;
-            min-height: 46px;
+            border-radius: 10px !important;
+            padding: 0 1rem !important;
+            height: 48px !important;
+            min-height: 0 !important;
             box-shadow: none !important;
+            display: flex !important;
+            align-items: center !important;
+            flex-wrap: nowrap !important;
+            cursor: pointer;
+            font-size: 1rem !important;
+            line-height: 1.5 !important;
         }
-        .ts-wrapper .ts-control input {
+        .ts-wrapper .ts-control input,
+        .ts-wrapper.single .ts-control input {
             background: transparent !important;
             color: var(--gf-text) !important;
+            flex: 1 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            font-size: 1rem !important;
         }
-        .ts-wrapper .ts-control input::placeholder { color: var(--gf-muted); opacity: 0.8; }
-        .ts-wrapper .ts-control .item { color: var(--gf-text); background: transparent; }
-        .ts-wrapper.focus .ts-control {
+        .ts-wrapper .ts-control input::placeholder { color: var(--gf-muted) !important; opacity: 0.8; }
+        .ts-wrapper .ts-control .item,
+        .ts-wrapper.single .ts-control .item,
+        .ts-wrapper .ts-control > div[data-value] {
+            color: var(--gf-text) !important;
+            background: transparent !important;
+        }
+        .ts-wrapper.focus .ts-control,
+        .ts-wrapper.single.focus .ts-control {
             border-color: var(--gf-primary) !important;
             box-shadow: 0 0 0 0.2rem rgba(108, 92, 231, 0.15) !important;
         }
-        .ts-dropdown,
-        .ts-dropdown .ts-dropdown-content {
-            background: var(--gf-card) !important;
-            border: 2px solid var(--gf-input-border) !important;
-            border-radius: 10px;
-            color: var(--gf-text);
+        .ts-wrapper.single .ts-control::after {
+            border-color: var(--gf-muted) transparent transparent transparent;
         }
-        .ts-dropdown .option { color: var(--gf-text); padding: 0.5rem 1rem; }
+        .ts-dropdown {
+            background-color: var(--gf-card) !important;
+            border: 2px solid var(--gf-primary) !important;
+            border-radius: 10px !important;
+            color: var(--gf-text) !important;
+            z-index: 9999 !important;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5) !important;
+            margin-top: 4px !important;
+        }
+        .ts-dropdown .ts-dropdown-content {
+            background-color: var(--gf-card) !important;
+            max-height: 250px !important;
+            overflow-y: auto !important;
+            padding: 0.4rem !important;
+        }
+        .ts-dropdown .option {
+            color: var(--gf-text) !important;
+            padding: 0.5rem 1rem !important;
+            border-radius: 8px !important;
+            transition: background 0.15s;
+        }
         .ts-dropdown .option.active,
-        .ts-dropdown .option:hover { background: rgba(108, 92, 231, 0.2); color: var(--gf-text); }
-        .ts-wrapper.single .ts-control::after { border-color: var(--gf-muted) transparent transparent transparent; }
+        .ts-dropdown .option:hover {
+            background: rgba(108, 92, 231, 0.3) !important;
+            color: #fff !important;
+        }
+        .ts-dropdown .no-results {
+            color: var(--gf-muted) !important;
+            padding: 0.5rem 1rem !important;
+        }
     </style>
     {% block stylesheets %}{% endblock %}
 </head>
@@ -713,12 +756,16 @@
 </script>
 <script src="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/js/tom-select.complete.min.js"></script>
 <script>
-    document.querySelectorAll('.tom-select-city').forEach(el => {
+    document.querySelectorAll('.tom-select-city, .tom-select-game').forEach(el => {
+        var placeholder = el.querySelector('option[value=""]')?.textContent || 'Оберіть...';
+        var hasValue = el.value && el.value !== '';
         new TomSelect(el, {
             create: false,
             sortField: { field: 'text', direction: 'asc' },
-            placeholder: el.querySelector('option[value=""]')?.textContent || 'Оберіть місто',
+            placeholder: placeholder,
             allowEmptyOption: true,
+            dropdownParent: 'body',
+            items: hasValue ? [el.value] : [],
         });
     });
 </script>

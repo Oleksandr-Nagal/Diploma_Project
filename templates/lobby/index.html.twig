@@ -24,7 +24,7 @@
         </div>
         <div class="col-md-3">
             <label class="form-label">Гра</label>
-            <select name="game" class="form-select">
+            <select name="game" class="tom-select-game">
                 <option value="">Всі ігри</option>
                 {% for game in games %}
                     <option value="{{ game.id }}" {{ filters.game == game.id ? 'selected' : '' }}>{{ game.name }}</option>
