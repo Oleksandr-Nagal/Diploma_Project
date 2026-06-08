@@ -21,7 +21,7 @@ class ProfileThemeServiceTest extends TestCase
     {
         $choices = ProfileThemeService::getChoices();
 
-        $this->assertArrayHasKey('Типова (фіолетова)', $choices);
+        $this->assertArrayHasKey('Фіолетова', $choices);
         $this->assertArrayHasKey('Океан', $choices);
         $this->assertArrayHasKey('Ліс', $choices);
     }
@@ -36,11 +36,12 @@ class ProfileThemeServiceTest extends TestCase
         $this->assertStringEndsWith(';', $css);
     }
 
-    public function testCssVariablesReturnsEmptyForDefault(): void
+    public function testCssVariablesReturnsValidForDefault(): void
     {
         $css = ProfileThemeService::cssVariables('default');
 
-        $this->assertEmpty($css);
+        $this->assertNotEmpty($css);
+        $this->assertStringContainsString('--gf-primary', $css);
     }
 
     public function testCssVariablesReturnsEmptyForNull(): void
@@ -72,6 +73,9 @@ class ProfileThemeServiceTest extends TestCase
         $this->assertTrue(ProfileThemeService::isPremiumTheme('neon'));
         $this->assertTrue(ProfileThemeService::isPremiumTheme('gold'));
         $this->assertTrue(ProfileThemeService::isPremiumTheme('cyberpunk'));
+        $this->assertTrue(ProfileThemeService::isPremiumTheme('aurora'));
+        $this->assertTrue(ProfileThemeService::isPremiumTheme('bloodmoon'));
+        $this->assertTrue(ProfileThemeService::isPremiumTheme('galaxy'));
     }
 
     public function testIsPremiumThemeReturnsFalseForFree(): void
@@ -93,6 +97,9 @@ class ProfileThemeServiceTest extends TestCase
         $this->assertNotContains('neon', $choices);
         $this->assertNotContains('gold', $choices);
         $this->assertNotContains('cyberpunk', $choices);
+        $this->assertNotContains('aurora', $choices);
+        $this->assertNotContains('bloodmoon', $choices);
+        $this->assertNotContains('galaxy', $choices);
         $this->assertContains('ocean', $choices);
     }
 
@@ -103,5 +110,8 @@ class ProfileThemeServiceTest extends TestCase
         $this->assertContains('neon', $choices);
         $this->assertContains('gold', $choices);
         $this->assertContains('cyberpunk', $choices);
+        $this->assertContains('aurora', $choices);
+        $this->assertContains('bloodmoon', $choices);
+        $this->assertContains('galaxy', $choices);
     }
 }

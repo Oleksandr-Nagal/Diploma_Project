@@ -7,6 +7,44 @@
     .profile-edit-form {
         padding: 2rem 2.5rem;
     }
+    .theme-preview-item {
+        width: 80px;
+        height: 48px;
+        border-radius: 10px;
+        border: 2px solid var(--gf-border);
+        cursor: pointer;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        padding: 3px;
+        transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+        position: relative;
+        overflow: hidden;
+    }
+    .theme-preview-item:hover {
+        transform: scale(1.08);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    .theme-preview-item.active {
+        border-color: var(--gf-success);
+        box-shadow: 0 0 0 2px var(--gf-success);
+    }
+    .theme-preview-item.premium::after {
+        content: '\2605';
+        position: absolute;
+        top: 2px;
+        right: 4px;
+        font-size: 0.6rem;
+        color: #ffd700;
+    }
+    .theme-preview-label {
+        font-size: 0.55rem;
+        font-weight: 600;
+        color: #fff;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+        text-align: center;
+        line-height: 1;
+    }
 </style>
 {% endblock %}
 
@@ -58,13 +96,22 @@
                         {{ form_label(field) }}
                         {% set base_class = field.vars.block_prefixes[1] == 'textarea' ? 'form-control' : (field.vars.block_prefixes[1] == 'choice' ? 'form-select' : 'form-control') %}
                         {% set extra_class = field.vars.attr.class|default('') %}
-                        {{ form_widget(field, {'attr': {'class': (base_class ~ ' ' ~ extra_class)|trim}}) }}
+                        {% if field.vars.name == 'profileTheme' %}
+                            {{ form_widget(field, {'attr': {'class': 'd-none'}}) }}
+                        {% else %}
+                            {{ form_widget(field, {'attr': {'class': (base_class ~ ' ' ~ extra_class)|trim}}) }}
+                        {% endif %}
                         {{ form_errors(field) }}
                         {% if field.vars.name == 'profileTheme' %}
-                            <div class="d-flex gap-2 flex-wrap mt-2">
+                            <div class="d-flex gap-2 flex-wrap mt-2" id="themePreviewGrid">
+                                <div class="theme-preview-item {{ app.user.profileTheme is null ? 'active' : '' }}" data-value="" title="— Типова —" style="background:linear-gradient(135deg, #6c5ce7, #00cec9);">
+                                    <span class="theme-preview-label">Типова</span>
+                                </div>
                                 {% for key, data in profile_themes() %}
                                     {% if not data.premium is defined or not data.premium or app.user.isPremium %}
-                                    <div title="{{ data.label }}" style="width:44px;height:28px;border-radius:8px;border:2px solid {{ app.user.profileTheme == key ? 'var(--gf-success)' : 'var(--gf-border)' }};background:linear-gradient(135deg,{{ data.preview[0] }},{{ data.preview[1] }});"></div>
+                                    <div class="theme-preview-item {{ app.user.profileTheme == key ? 'active' : '' }} {{ data.premium is defined and data.premium ? 'premium' : '' }}" data-value="{{ key }}" title="{{ data.label }}" style="background:linear-gradient(135deg,{{ data.preview[0] }},{{ data.preview[1] }});">
+                                        <span class="theme-preview-label">{{ data.label }}</span>
+                                    </div>
                                     {% endif %}
                                 {% endfor %}
                             </div>
@@ -80,4 +127,18 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+document.querySelectorAll('.theme-preview-item').forEach(item => {
+    item.addEventListener('click', () => {
+        const select = document.getElementById('{{ form.profileTheme.vars.id }}');
+        if (!select) return;
+        select.value = item.dataset.value;
+        document.querySelectorAll('.theme-preview-item').forEach(el => el.classList.remove('active'));
+        item.classList.add('active');
+    });
+});
+</script>
 {% endblock %}
