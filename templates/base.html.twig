@@ -60,6 +60,8 @@
             color: var(--gf-text);
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
         .navbar-gf {
@@ -545,7 +547,7 @@
     </div>
 </nav>
 
-<main class="container py-4">
+<main class="container py-4" style="flex:1">
     {% block body %}{% endblock %}
 </main>
 
