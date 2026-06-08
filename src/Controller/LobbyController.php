@@ -53,6 +53,14 @@ class LobbyController extends AbstractController
     public function create(Request $request, LobbyService $lobbyService, GameRepository $gameRepo): Response
     {
         $lobby = new Lobby();
+        $user = $this->getUser();
+
+        if ($user->getLanguage()) {
+            $lobby->setLanguage($user->getLanguage());
+        }
+        if ($user->getCity()) {
+            $lobby->setCity($user->getCity());
+        }
 
         if ($gameId = $request->query->get('game')) {
             $game = $gameRepo->find($gameId);
