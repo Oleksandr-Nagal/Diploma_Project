@@ -50,9 +50,17 @@ class LobbyController extends AbstractController
     }
 
     #[Route('/create', name: 'app_lobby_create')]
-    public function create(Request $request, LobbyService $lobbyService): Response
+    public function create(Request $request, LobbyService $lobbyService, GameRepository $gameRepo): Response
     {
         $lobby = new Lobby();
+
+        if ($gameId = $request->query->get('game')) {
+            $game = $gameRepo->find($gameId);
+            if ($game) {
+                $lobby->setGame($game);
+            }
+        }
+
         $form = $this->createForm(LobbyType::class, $lobby);
         $form->handleRequest($request);
 
