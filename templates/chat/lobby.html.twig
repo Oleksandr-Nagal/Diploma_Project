@@ -17,6 +17,12 @@
     <button id="voiceMuteBtn" class="btn btn-gf-outline btn-sm" style="display:none;">
         <i class="fas fa-microphone" id="voiceMuteIcon"></i>
     </button>
+    <div class="dropdown d-inline-block" id="voiceMicSelect" style="display:none!important;">
+        <button class="btn btn-gf-outline btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-label="Обрати мікрофон" title="Обрати мікрофон">
+            <i class="fas fa-sliders"></i>
+        </button>
+        <ul class="dropdown-menu" id="voiceMicList" style="background:var(--gf-dropdown-bg);border-color:var(--gf-border);"></ul>
+    </div>
     <button id="voiceLeaveBtn" class="btn btn-gf-danger btn-sm" style="display:none;">
         <i class="fas fa-phone-slash me-1"></i>Вийти
     </button>
@@ -338,6 +344,7 @@ voiceJoinBtn.addEventListener('click', async () => {
             voiceJoinBtn.style.display = 'none';
             voiceLeaveBtn.style.display = 'inline-block';
             voiceMuteBtn.style.display = 'inline-block';
+            voiceMicSelect.style.cssText = 'display:inline-block!important';
         });
         voiceRoom.on('peer_added', ({ id, name }) => renderPeerChip(id, name));
         voiceRoom.on('peer_removed', ({ id }) => {
@@ -353,6 +360,7 @@ voiceJoinBtn.addEventListener('click', async () => {
             voiceJoinBtn.disabled = false;
             voiceLeaveBtn.style.display = 'none';
             voiceMuteBtn.style.display = 'none';
+            voiceMicSelect.style.cssText = 'display:none!important';
             voicePeers.innerHTML = '';
             voiceRoom = null;
         });
@@ -369,5 +377,59 @@ voiceJoinBtn.addEventListener('click', async () => {
 voiceLeaveBtn.addEventListener('click', () => { if (voiceRoom) voiceRoom.leave(); });
 voiceMuteBtn.addEventListener('click', () => { if (voiceRoom) voiceRoom.toggleMute(); });
 window.addEventListener('beforeunload', () => { if (voiceRoom) voiceRoom.leave(); });
+
+const voiceMicSelect = document.getElementById('voiceMicSelect');
+const voiceMicList = document.getElementById('voiceMicList');
+
+async function loadMicrophoneList() {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const mics = devices.filter(d => d.kind === 'audioinput');
+    const currentTrack = voiceRoom && voiceRoom.stream ? voiceRoom.stream.getAudioTracks()[0] : null;
+    const currentDeviceId = currentTrack ? currentTrack.getSettings().deviceId : null;
+
+    voiceMicList.innerHTML = '';
+    mics.forEach((mic, i) => {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.className = 'dropdown-item';
+        a.href = '#';
+        a.style.cssText = 'color:var(--gf-text);font-size:0.85rem;';
+        const label = mic.label || `Мікрофон ${i + 1}`;
+        const isActive = mic.deviceId === currentDeviceId;
+        a.innerHTML = (isActive ? '<i class="fas fa-check me-2" style="color:var(--gf-success)"></i>' : '<i class="fas fa-check me-2" style="visibility:hidden"></i>') + label;
+        a.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchMicrophone(mic.deviceId);
+        });
+        li.appendChild(a);
+        voiceMicList.appendChild(li);
+    });
+}
+
+async function switchMicrophone(deviceId) {
+    if (!voiceRoom || !voiceRoom.stream) return;
+    try {
+        const newStream = await navigator.mediaDevices.getUserMedia({ audio: { deviceId: { exact: deviceId } } });
+        const newTrack = newStream.getAudioTracks()[0];
+        const oldTrack = voiceRoom.stream.getAudioTracks()[0];
+
+        newTrack.enabled = !voiceRoom.muted;
+
+        Object.values(voiceRoom.peers).forEach(peer => {
+            const sender = peer.pc.getSenders().find(s => s.track && s.track.kind === 'audio');
+            if (sender) sender.replaceTrack(newTrack);
+        });
+
+        oldTrack.stop();
+        voiceRoom.stream.removeTrack(oldTrack);
+        voiceRoom.stream.addTrack(newTrack);
+
+        loadMicrophoneList();
+    } catch (err) {
+        console.error('Failed to switch microphone:', err);
+    }
+}
+
+document.querySelector('#voiceMicSelect .dropdown-toggle').addEventListener('click', loadMicrophoneList);
 </script>
 {% endblock %}

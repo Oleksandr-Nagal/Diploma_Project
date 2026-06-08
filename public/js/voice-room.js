@@ -31,7 +31,11 @@
 
             this.eventSource = new EventSource(url.toString());
             this.eventSource.onmessage = (e) => this.handleSignal(JSON.parse(e.data));
-            this.eventSource.onerror = () => this.emit('error', 'SSE connection error');
+            this.eventSource.onerror = () => {
+                if (this.eventSource && this.eventSource.readyState === EventSource.CLOSED) {
+                    this.emit('error', 'Голосовий сервер недоступний');
+                }
+            };
 
             await this.sendSignal({ type: 'join' });
             this.emit('joined');
