@@ -124,11 +124,17 @@ class SteamAchievementService
             if ($statusCode === 403) {
                 return 'private';
             }
+            if ($statusCode === 400) {
+                return [];
+            }
 
             $data = $response->toArray(false);
 
             if (!isset($data['playerstats']['achievements'])) {
                 $errorMsg = $data['playerstats']['error'] ?? 'Не вдалося отримати досягнення';
+                if (str_contains(strtolower($errorMsg), 'no stats')) {
+                    return [];
+                }
                 return 'Steam API: ' . $errorMsg;
             }
 

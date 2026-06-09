@@ -54,20 +54,22 @@ class ProfileController extends AbstractController
         }
 
         $syncResults = [];
-        $privateProfile = false;
+        $privateCount = 0;
+        $totalChecked = 0;
         $games = $gameRepo->findActiveGames();
         foreach ($games as $game) {
             if ($game->getSteamAppId()) {
+                $totalChecked++;
                 $result = $steamService->syncAchievements($user, $game);
                 if ($result === 'private') {
-                    $privateProfile = true;
-                    break;
-                }
-                if (is_array($result) && count($result) > 0) {
+                    $privateCount++;
+                } elseif (is_array($result) && count($result) > 0) {
                     $syncResults[] = $game->getName() . ': +' . count($result);
                 }
             }
         }
+
+        $privateProfile = $totalChecked > 0 && $privateCount === $totalChecked;
 
         if (!$privateProfile) {
             $session->set('steam_synced_at', time());
