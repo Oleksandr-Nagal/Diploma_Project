@@ -9,21 +9,21 @@
         main.container {
             {{ theme_css|raw }}
             background: var(--gf-darker);
-            border-radius: 16px;
-            padding: 1.5rem 1rem;
             color: var(--gf-text);
+            max-width: 100% !important;
+            width: 100% !important;
         }
-        main.container .form-control,
-        main.container .form-select {
-            background: var(--gf-input-bg);
-            border-color: var(--gf-input-border);
-            color: var(--gf-text);
+        main.container > .row {
+            max-width: 1140px;
+            margin: 0 auto;
         }
-        main.container .card-gf {
-            box-shadow: var(--gf-premium-glow, none);
+        footer {
+            margin-top: 0 !important;
         }
-        main.container .card-gf:hover {
-            box-shadow: var(--gf-premium-glow, 0 8px 24px rgba(108, 92, 231, 0.15));
+        main.container .avatar-lg,
+        main.container .avatar-md,
+        main.container .avatar-sm {
+            border-color: #6c5ce7;
         }
     </style>
     {% endif %}
