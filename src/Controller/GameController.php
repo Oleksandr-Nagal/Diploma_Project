@@ -37,7 +37,9 @@ class GameController extends AbstractController
     {
         $result = $steamService->syncAchievements($this->getUser(), $game);
 
-        if (is_string($result)) {
+        if ($result === 'private') {
+            $this->addFlash('error', 'Ваш Steam профіль приватний. Зробіть налаштування ігор публічними для синхронізації досягнень.');
+        } elseif (is_string($result)) {
             $this->addFlash('error', $result);
         } else {
             $this->addFlash('success', 'Синхронізовано ' . count($result) . ' досягнень!');

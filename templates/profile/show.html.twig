@@ -266,7 +266,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 const container = document.getElementById('gfToasts');
                 if (container) { container.appendChild(toast); setTimeout(() => toast.classList.add('show'), 50); }
             } else if (data.synced && data.synced.length > 0) {
-                location.reload();
+                const toast = document.createElement('div');
+                toast.className = 'gf-toast';
+                toast.innerHTML = '<i class="fas fa-check-circle me-2"></i>Steam синхронізовано: ' + data.synced.join(', ');
+                const container = document.getElementById('gfToasts');
+                if (container) { container.appendChild(toast); setTimeout(() => toast.classList.add('show'), 50); }
+                setTimeout(() => location.reload(), 2000);
             }
         })
         .catch(() => {});
