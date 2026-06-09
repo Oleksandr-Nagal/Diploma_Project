@@ -112,10 +112,6 @@ class SteamAchievementService
         }
 
         try {
-            // 1. Get achievement schema (names, descriptions, icons)
-            $schema = $this->getAchievementSchema($game->getSteamAppId());
-
-            // 2. Get player achievements
             $response = $this->httpClient->request('GET', 'https://api.steampowered.com/ISteamUserStats/GetPlayerAchievements/v0001/', [
                 'query' => [
                     'appid' => $game->getSteamAppId(),
@@ -132,48 +128,67 @@ class SteamAchievementService
             }
 
             $achievements = $data['playerstats']['achievements'];
+            $achieved = array_filter($achievements, fn($a) => $a['achieved'] ?? false);
+
+            if (empty($achieved)) {
+                return [];
+            }
+
+            $existingAchs = $this->em->getRepository(Achievement::class)->findBy([
+                'user' => $user,
+                'game' => $game,
+            ]);
+            $existingMap = [];
+            foreach ($existingAchs as $ach) {
+                $existingMap[$ach->getSteamAchievementId()] = $ach;
+            }
+
+            $needsSchema = false;
+            foreach ($achieved as $achData) {
+                $apiName = $achData['apiname'];
+                if (!isset($existingMap[$apiName])) {
+                    $needsSchema = true;
+                    break;
+                }
+                $existing = $existingMap[$apiName];
+                if (!$existing->getDescription() || !$existing->getIconUrl() || $existing->getName() === $apiName) {
+                    $needsSchema = true;
+                    break;
+                }
+            }
+
+            $schema = $needsSchema ? $this->getAchievementSchema($game->getSteamAppId()) : [];
             $synced = [];
 
-            foreach ($achievements as $achData) {
-                if ($achData['achieved'] ?? false) {
-                    $apiName = $achData['apiname'];
-                    $existing = $this->em->getRepository(Achievement::class)->findOneBy([
-                        'user' => $user,
-                        'game' => $game,
-                        'steamAchievementId' => $apiName,
-                    ]);
+            foreach ($achieved as $achData) {
+                $apiName = $achData['apiname'];
+                $existing = $existingMap[$apiName] ?? null;
 
-                    if (!$existing) {
-                        $schemaInfo = $schema[$apiName] ?? null;
+                if (!$existing) {
+                    $schemaInfo = $schema[$apiName] ?? null;
 
-                        $achievement = new Achievement();
-                        $achievement->setUser($user);
-                        $achievement->setGame($game);
-                        $achievement->setName($schemaInfo['displayName'] ?? $apiName);
-                        $achievement->setDescription($schemaInfo['description'] ?? null);
-                        $achievement->setIconUrl($schemaInfo['icon'] ?? null);
-                        $achievement->setSteamAchievementId($apiName);
-                        $achievement->setUnlockedAt(
-                            isset($achData['unlocktime']) ? (new \DateTime())->setTimestamp($achData['unlocktime']) : new \DateTime()
-                        );
-                        $this->em->persist($achievement);
-                        $synced[] = $achievement;
-                    } elseif ($existing && $schema) {
-                        // Update existing achievements with missing data
-                        $schemaInfo = $schema[$apiName] ?? null;
-                        $updated = false;
-                        if ($schemaInfo && !$existing->getDescription() && !empty($schemaInfo['description'])) {
-                            $existing->setDescription($schemaInfo['description']);
-                            $updated = true;
-                        }
-                        if ($schemaInfo && !$existing->getIconUrl() && !empty($schemaInfo['icon'])) {
-                            $existing->setIconUrl($schemaInfo['icon']);
-                            $updated = true;
-                        }
-                        if ($schemaInfo && $existing->getName() === $apiName && !empty($schemaInfo['displayName'])) {
-                            $existing->setName($schemaInfo['displayName']);
-                            $updated = true;
-                        }
+                    $achievement = new Achievement();
+                    $achievement->setUser($user);
+                    $achievement->setGame($game);
+                    $achievement->setName($schemaInfo['displayName'] ?? $apiName);
+                    $achievement->setDescription($schemaInfo['description'] ?? null);
+                    $achievement->setIconUrl($schemaInfo['icon'] ?? null);
+                    $achievement->setSteamAchievementId($apiName);
+                    $achievement->setUnlockedAt(
+                        isset($achData['unlocktime']) ? (new \DateTime())->setTimestamp($achData['unlocktime']) : new \DateTime()
+                    );
+                    $this->em->persist($achievement);
+                    $synced[] = $achievement;
+                } elseif ($schema) {
+                    $schemaInfo = $schema[$apiName] ?? null;
+                    if ($schemaInfo && !$existing->getDescription() && !empty($schemaInfo['description'])) {
+                        $existing->setDescription($schemaInfo['description']);
+                    }
+                    if ($schemaInfo && !$existing->getIconUrl() && !empty($schemaInfo['icon'])) {
+                        $existing->setIconUrl($schemaInfo['icon']);
+                    }
+                    if ($schemaInfo && $existing->getName() === $apiName && !empty($schemaInfo['displayName'])) {
+                        $existing->setName($schemaInfo['displayName']);
                     }
                 }
             }

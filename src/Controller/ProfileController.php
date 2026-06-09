@@ -8,7 +8,6 @@ use App\Repository\AchievementRepository;
 use App\Repository\FriendshipRepository;
 use App\Repository\GameRepository;
 use App\Repository\ReviewRepository;
-use App\Repository\UserRepository;
 use App\Service\AvatarService;
 use App\Service\CloudinaryService;
 use App\Service\ProfileThemeService;
@@ -25,32 +24,50 @@ class ProfileController extends AbstractController
     public function myProfile(
         AchievementRepository $achievementRepo,
         ReviewRepository $reviewRepo,
-        GameRepository $gameRepo,
-        SteamAchievementService $steamService
     ): Response {
         $user = $this->getUser();
-
-        $syncResults = [];
-        if ($user->getSteamId()) {
-            $games = $gameRepo->findActiveGames();
-            foreach ($games as $game) {
-                if ($game->getSteamAppId()) {
-                    $result = $steamService->syncAchievements($user, $game);
-                    if (is_array($result) && count($result) > 0) {
-                        $syncResults[] = $game->getName() . ': +' . count($result);
-                    }
-                }
-            }
-            if (!empty($syncResults)) {
-                $this->addFlash('success', 'Steam синхронізовано: ' . implode(', ', $syncResults));
-            }
-        }
 
         return $this->render('profile/show.html.twig', [
             'user' => $user,
             'achievements' => $achievementRepo->findByUser($user),
             'reviews' => $reviewRepo->findByTarget($user),
             'isOwn' => true,
+        ]);
+    }
+
+    #[Route('/profile/sync-steam', name: 'app_profile_sync_steam', methods: ['POST'])]
+    public function syncSteam(
+        Request $request,
+        GameRepository $gameRepo,
+        SteamAchievementService $steamService
+    ): Response {
+        $user = $this->getUser();
+        if (!$user || !$user->getSteamId()) {
+            return $this->json(['ok' => false]);
+        }
+
+        $session = $request->getSession();
+        $lastSync = $session->get('steam_synced_at', 0);
+        if (time() - $lastSync < 3600) {
+            return $this->json(['ok' => true, 'synced' => [], 'cached' => true]);
+        }
+
+        $syncResults = [];
+        $games = $gameRepo->findActiveGames();
+        foreach ($games as $game) {
+            if ($game->getSteamAppId()) {
+                $result = $steamService->syncAchievements($user, $game);
+                if (is_array($result) && count($result) > 0) {
+                    $syncResults[] = $game->getName() . ': +' . count($result);
+                }
+            }
+        }
+
+        $session->set('steam_synced_at', time());
+
+        return $this->json([
+            'ok' => true,
+            'synced' => $syncResults,
         ]);
     }
 

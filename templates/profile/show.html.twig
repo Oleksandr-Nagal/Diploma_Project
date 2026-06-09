@@ -166,13 +166,14 @@
                 {# Achievement lists per game #}
                 {% set first = true %}
                 {% for gameName, achs in gameGroups %}
-                <div class="game-ach-list" id="ach_{{ gameName|replace({' ': '_', ':': ''}) }}" style="{{ not first ? 'display:none;' : '' }}">
+                {% set gameId = gameName|replace({' ': '_', ':': ''}) %}
+                <div class="game-ach-list" id="ach_{{ gameId }}" style="{{ not first ? 'display:none;' : '' }}">
                     <div style="max-height:300px;overflow-y:auto;padding-right:0.5rem;">
                         {% for ach in achs %}
-                        <div class="d-flex align-items-center gap-2 p-2 mb-1" style="background:var(--gf-dark);border-radius:8px;">
+                        <div class="d-flex align-items-center gap-2 p-2 mb-1 ach-item-{{ gameId }}{{ loop.index > 10 ? ' d-none' : '' }}" style="background:var(--gf-dark);border-radius:8px;">
                             <div style="width:32px;height:32px;border-radius:6px;background:var(--gf-warning);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                                 {% if ach.iconUrl %}
-                                    <img src="{{ ach.iconUrl }}" style="width:32px;height:32px;border-radius:6px;" alt="{{ ach.name }}">
+                                    <img src="{{ ach.iconUrl }}" style="width:32px;height:32px;border-radius:6px;" loading="lazy" alt="{{ ach.name }}">
                                 {% else %}
                                     <i class="fas fa-star text-dark" style="font-size:0.8rem;"></i>
                                 {% endif %}
@@ -188,6 +189,11 @@
                             {% endif %}
                         </div>
                         {% endfor %}
+                        {% if achs|length > 10 %}
+                        <button class="btn btn-gf-outline btn-sm w-100 mt-2" onclick="showAllAch(this, '{{ gameId }}')">
+                            Показати всі ({{ achs|length }})
+                        </button>
+                        {% endif %}
                     </div>
                 </div>
                 {% set first = false %}
@@ -242,5 +248,23 @@ function showGameAch(btn, gameId) {
     btn.classList.remove('btn-gf-outline');
     btn.classList.add('btn-gf');
 }
+
+function showAllAch(btn, gameId) {
+    document.querySelectorAll('.ach-item-' + gameId + '.d-none').forEach(el => el.classList.remove('d-none'));
+    btn.remove();
+}
+
+{% if isOwn and user.steamId %}
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('{{ path('app_profile_sync_steam') }}', {method: 'POST', headers: {'X-Requested-With': 'XMLHttpRequest'}})
+        .then(r => r.json())
+        .then(data => {
+            if (data.synced && data.synced.length > 0) {
+                location.reload();
+            }
+        })
+        .catch(() => {});
+});
+{% endif %}
 </script>
 {% endblock %}

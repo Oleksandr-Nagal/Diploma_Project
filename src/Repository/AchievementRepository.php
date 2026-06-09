@@ -17,6 +17,8 @@ class AchievementRepository extends ServiceEntityRepository
     public function findByUser(User $user): array
     {
         return $this->createQueryBuilder('a')
+            ->leftJoin('a.game', 'g')
+            ->addSelect('g')
             ->where('a.user = :user')
             ->setParameter('user', $user)
             ->orderBy('a.unlockedAt', 'DESC')
