@@ -8,6 +8,7 @@ use App\Repository\AchievementRepository;
 use App\Repository\FriendshipRepository;
 use App\Repository\GameRepository;
 use App\Repository\ReviewRepository;
+use App\Repository\UserRepository;
 use App\Service\AvatarService;
 use App\Service\CloudinaryService;
 use App\Service\ProfileThemeService;
@@ -53,28 +54,37 @@ class ProfileController extends AbstractController
         }
 
         $syncResults = [];
+        $privateProfile = false;
         $games = $gameRepo->findActiveGames();
         foreach ($games as $game) {
             if ($game->getSteamAppId()) {
                 $result = $steamService->syncAchievements($user, $game);
+                if ($result === 'private') {
+                    $privateProfile = true;
+                    break;
+                }
                 if (is_array($result) && count($result) > 0) {
                     $syncResults[] = $game->getName() . ': +' . count($result);
                 }
             }
         }
 
-        $session->set('steam_synced_at', time());
+        if (!$privateProfile) {
+            $session->set('steam_synced_at', time());
+        }
 
         return $this->json([
             'ok' => true,
             'synced' => $syncResults,
+            'private' => $privateProfile,
         ]);
     }
 
     #[Route('/profile/edit', name: 'app_profile_edit')]
-    public function edit(Request $request, EntityManagerInterface $em, SteamAchievementService $steamService): Response
+    public function edit(Request $request, EntityManagerInterface $em, SteamAchievementService $steamService, UserRepository $userRepo, AchievementRepository $achievementRepo): Response
     {
         $user = $this->getUser();
+        $oldSteamId = $user->getSteamId();
         $form = $this->createForm(ProfileType::class, $user, ['is_premium' => $user->isPremium()]);
         $form->handleRequest($request);
 
@@ -90,6 +100,7 @@ class ProfileController extends AbstractController
                 $resolved = $steamService->resolveToSteamId64($steamInput);
                 if ($resolved) {
                     $user->setSteamId($resolved);
+                    $steamInput = $resolved;
                     $this->addFlash('success', 'Steam ID визначено: ' . $resolved);
                 } else {
                     $this->addFlash('error', 'Не вдалося визначити Steam ID з цього посилання. Перевірте URL.');
@@ -99,7 +110,26 @@ class ProfileController extends AbstractController
                 }
             }
 
+            if ($steamInput) {
+                $existing = $userRepo->findOneBy(['steamId' => $steamInput]);
+                if ($existing && $existing->getId() !== $user->getId()) {
+                    $user->setSteamId(null);
+                    $this->addFlash('error', 'Цей Steam акаунт вже прив\'язаний до іншого користувача.');
+                    return $this->render('profile/edit.html.twig', [
+                        'form' => $form->createView(),
+                    ]);
+                }
+            }
+
+            $newSteamId = $user->getSteamId();
+            if ($oldSteamId && $newSteamId !== $oldSteamId) {
+                foreach ($achievementRepo->findByUser($user) as $ach) {
+                    $em->remove($ach);
+                }
+            }
+
             $em->flush();
+            $request->getSession()->remove('steam_synced_at');
             $this->addFlash('success', 'Профіль оновлено!');
             return $this->redirectToRoute('app_profile');
         }

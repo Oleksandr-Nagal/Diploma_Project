@@ -120,6 +120,11 @@ class SteamAchievementService
                 ],
             ]);
 
+            $statusCode = $response->getStatusCode();
+            if ($statusCode === 403) {
+                return 'private';
+            }
+
             $data = $response->toArray(false);
 
             if (!isset($data['playerstats']['achievements'])) {

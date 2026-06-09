@@ -259,7 +259,13 @@ document.addEventListener('DOMContentLoaded', function() {
     fetch('{{ path('app_profile_sync_steam') }}', {method: 'POST', headers: {'X-Requested-With': 'XMLHttpRequest'}})
         .then(r => r.json())
         .then(data => {
-            if (data.synced && data.synced.length > 0) {
+            if (data.private) {
+                const toast = document.createElement('div');
+                toast.className = 'gf-toast';
+                toast.innerHTML = '<i class="fas fa-lock me-2"></i>Ваш Steam профіль приватний. Зробіть налаштування ігор публічними для синхронізації досягнень.';
+                const container = document.getElementById('gfToasts');
+                if (container) { container.appendChild(toast); setTimeout(() => toast.classList.add('show'), 50); }
+            } else if (data.synced && data.synced.length > 0) {
                 location.reload();
             }
         })
