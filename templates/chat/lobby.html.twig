@@ -61,32 +61,12 @@
                     <div class="mt-1 d-flex align-items-center gap-2">
                         <small style="color:var(--gf-muted);font-size:0.75rem;">{{ msg.createdAt|date('H:i') }}</small>
                         {% if msg.sender.id != app.user.id %}
-                            <button class="btn btn-sm p-0 report-msg-btn" style="color:var(--gf-muted);font-size:0.65rem;background:none;border:none;opacity:0.5;" title="Поскаржитись" data-bs-toggle="modal" data-bs-target="#reportMsgModal{{ msg.id }}">
+                            <button class="btn btn-sm p-0 report-msg-btn" style="color:var(--gf-muted);font-size:0.65rem;background:none;border:none;opacity:0.5;" title="Поскаржитись" data-bs-toggle="modal" data-bs-target="#reportMsgModal" data-report-id="{{ msg.id }}">
                                 <i class="fas fa-flag"></i>
                             </button>
                         {% endif %}
                     </div>
                 </div>
-                {% if msg.sender.id != app.user.id %}
-                <div class="modal fade" id="reportMsgModal{{ msg.id }}" tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog modal-sm">
-                        <div class="modal-content" style="background:var(--gf-card);border:1px solid var(--gf-border);border-radius:16px;">
-                            <div class="modal-header" style="border-color:var(--gf-border);">
-                                <h6 class="modal-title" style="color:var(--gf-text)"><i class="fas fa-flag me-1" style="color:var(--gf-danger)"></i>Скарга на повідомлення</h6>
-                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Закрити"></button>
-                            </div>
-                            <form action="{{ path('app_report_message', {id: msg.id}) }}" method="post">
-                                <div class="modal-body">
-                                    <textarea name="reason" class="form-control form-control-sm" rows="2" placeholder="Причина скарги..." required></textarea>
-                                </div>
-                                <div class="modal-footer" style="border-color:var(--gf-border);">
-                                    <button type="submit" class="btn btn-gf-danger btn-sm"><i class="fas fa-paper-plane me-1"></i>Надіслати</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-                {% endif %}
             </div>
             {% endfor %}
         </div>
@@ -115,6 +95,24 @@
                     <span id="voiceTimer" class="ms-1" style="display:none;font-variant-numeric:tabular-nums;"></span>
                 </button>
                 <button type="submit" class="btn btn-gf" id="sendBtn" aria-label="Надіслати"><i class="fas fa-paper-plane"></i></button>
+            </form>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="reportMsgModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content" style="background:var(--gf-card);border:1px solid var(--gf-border);border-radius:16px;">
+            <div class="modal-header" style="border-color:var(--gf-border);">
+                <h6 class="modal-title" style="color:var(--gf-text)"><i class="fas fa-flag me-1" style="color:var(--gf-danger)"></i>Скарга на повідомлення</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Закрити"></button>
+            </div>
+            <form id="reportMsgForm" action="" method="post">
+                <div class="modal-body">
+                    <textarea name="reason" class="form-control form-control-sm" rows="2" placeholder="Причина скарги..." required></textarea>
+                </div>
+                <div class="modal-footer" style="border-color:var(--gf-border);">
+                    <button type="submit" class="btn btn-gf-danger btn-sm"><i class="fas fa-paper-plane me-1"></i>Надіслати</button>
+                </div>
             </form>
         </div>
     </div>
@@ -220,13 +218,15 @@ function renderMessage(msg) {
         timeStr = d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
     }
 
+    const reportBtn = !isOwn ? `<button class="btn btn-sm p-0 report-msg-btn" style="color:var(--gf-muted);font-size:0.65rem;background:none;border:none;opacity:0.5;" title="Поскаржитись" data-bs-toggle="modal" data-bs-target="#reportMsgModal" data-report-id="${msg.id}"><i class="fas fa-flag"></i></button>` : '';
+
     const html = `
         <div class="chat-message ${isOwn ? 'own' : ''}" data-id="${msg.id}">
             ${!isOwn ? `<div>${avatarHtml}</div>` : ''}
             <div class="chat-bubble">
                 ${!isOwn ? `<small style="color:var(--gf-primary);font-weight:600;">${msg.senderName}</small><br>` : ''}
                 ${body}
-                <div class="mt-1"><small style="color:var(--gf-muted);font-size:0.75rem;">${timeStr}</small></div>
+                <div class="mt-1 d-flex align-items-center gap-2"><small style="color:var(--gf-muted);font-size:0.75rem;">${timeStr}</small>${reportBtn}</div>
             </div>
         </div>`;
 
@@ -431,5 +431,11 @@ async function switchMicrophone(deviceId) {
 }
 
 document.querySelector('#voiceMicSelect .dropdown-toggle').addEventListener('click', loadMicrophoneList);
+
+document.getElementById('reportMsgModal').addEventListener('show.bs.modal', (e) => {
+    const msgId = e.relatedTarget.dataset.reportId;
+    document.getElementById('reportMsgForm').action = '/report/message/' + msgId;
+    document.querySelector('#reportMsgForm textarea').value = '';
+});
 </script>
 {% endblock %}
